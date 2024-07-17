@@ -15,7 +15,7 @@ import { Menu, X } from 'lucide-react'; // Assuming you're using Lucide icons
 
 interface TableData {
   id: string;
-  rows: string[][];
+  rows: {id: number, value: string}[][];
   columns: {id: string, name: string}[];
   expandedRows: boolean[];
 }
@@ -160,6 +160,7 @@ export default function Home() {
               row_number,
               CategoryDataValues (
                 value,
+                category_data_id,
                 ColumnDefinitions (
                   column_name
                 )
@@ -172,7 +173,12 @@ export default function Home() {
 
           // Structure the rows
           const rows = categoryData.map(row => {
-            return row.CategoryDataValues.map(cdv => cdv.value)
+            return row.CategoryDataValues.map(cdv => {
+              return {
+                id: cdv.category_data_id,
+                value: cdv.value
+              }
+            })
           })
 
           // Structure the result

@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Minus, Trash2, Construction as ConstructionIcon, Printer, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabaseClient';
 
 interface TableData {
   id: string;
-  rows: string[][];
+  rows: {id: number, value: string}[][];
   columns: {id: string, name: string}[];
   expandedRows: boolean[];
 }
@@ -124,36 +125,109 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
     ));
   };
 
-  const addRow = (sectionId: string) => {
-    setSections(sections.map(section => {
-      if (section.id === sectionId) {
-        const newRow = Array(section.table.rows[0].length).fill('');
-        return {
-          ...section,
-          table: {
-            ...section.table,
-            rows: [...section.table.rows, newRow]
-          }
-        };
+  // const addRow = (sectionId: string) => {
+  //   setSections(sections.map(section => {
+  //     if (section.id === sectionId) {
+  //       const newRow = Array(section.table.rows[0].length).fill('');
+  //       return {
+  //         ...section,
+  //         table: {
+  //           ...section.table,
+  //           rows: [...section.table.rows, newRow]
+  //         }
+  //       };
+  //     }
+  //     return section;
+  //   }));
+  // };
+  const addRow = async (sectionId: string) => {
+    try {
+      // Find the section in the current state
+      const section = sections.find(s => s.id === sectionId);
+      if (!section) {
+        console.error('Section not found');
+        return;
       }
-      return section;
-    }));
+  
+      // Get the number of existing rows
+      const newRowNumber = section.table.rows.length + 1;
+  
+      // Insert new row into CategoryData
+      const { data: newCategoryData, error: categoryDataError } = await supabase
+        .from('CategoryData')
+        .insert({ category_id: sectionId, row_number: newRowNumber })
+        .select()
+        .single();
+  
+      if (categoryDataError) throw categoryDataError;
+  
+      // Insert empty values for each column
+      const columnInserts = section.table.columns.map((_, index) => ({
+        category_data_id: newCategoryData.id,
+        column_definition_id: section.table.columns[index].id, // Assuming column IDs are stored in the columns array
+        value: ''
+      }));
+  
+      const { data: newValues, error: valuesError } = await supabase
+        .from('CategoryDataValues')
+        .insert(columnInserts)
+        .select();
+  
+      if (valuesError) throw valuesError;
+  
+      // Update the local state
+      // setSections(sections.map(s => {
+      //   if (s.id === sectionId) {
+      //     const newRow = Array(s.table.columns.length).fill('');
+      //     return {
+      //       ...s,
+      //       table: {
+      //         ...s.table,
+      //         rows: [...s.table.rows, newRow],
+      //         expandedRows: [...s.table.expandedRows, false] // Add a new expandedRow state
+      //       }
+      //     };
+      //   }
+      //   return s;
+      // }));
+  
+      console.log('New row added successfully');
+    } catch (error) {
+      console.error('Error adding new row:', error);
+    }
   };
 
-  const deleteRow = (sectionId: string, rowIndex: number) => {
-    setSections(sections.map(section => {
-      if (section.id === sectionId) {
-        const newRows = section.table.rows.filter((_, index) => index !== rowIndex);
-        return {
-          ...section,
-          table: {
-            ...section.table,
-            rows: newRows
-          }
-        };
+  const deleteRow = async (rowId: number) => {
+    try {
+      const { error } = await supabase
+        .from('CategoryData')
+        .delete()
+        .eq('id', rowId);
+  
+      if (error) {
+        throw error;
       }
-      return section;
-    }));
+  
+      console.log(`Row ${rowId} deleted successfully`);
+
+      // setSections(sections.map(section => {
+      //   if (section.id === sectionId) {
+      //     const newRows = section.table.rows.filter((_, index) => index !== rowIndex);
+      //     return {
+      //       ...section,
+      //       table: {
+      //         ...section.table,
+      //         rows: newRows
+      //       }
+      //     };
+      //   }
+      //   return section;
+      // }));
+      
+    } catch (error) {
+      console.error('Error deleting row:', error);
+      // Handle the error appropriately (e.g., show an error message to the user)
+    }
   };
 
   const addColumn = (sectionId: string) => {
@@ -210,23 +284,23 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
   }
 
   const updateCell = (sectionId: string, rowIndex: number, colIndex: number, value: string) => {
-    setSections(sections.map(section => {
-      if (section.id === sectionId) {
-        const newRows = section.table.rows.map((row, rIndex) =>
-          rIndex === rowIndex
-            ? row.map((cell, cIndex) => (cIndex === colIndex ? value : cell))
-            : row
-        );
-        return {
-          ...section,
-          table: {
-            ...section.table,
-            rows: newRows
-          }
-        };
-      }
-      return section;
-    }));
+    // setSections(sections.map(section => {
+    //   if (section.id === sectionId) {
+    //     const newRows = section.table.rows.map((row, rIndex) =>
+    //       rIndex === rowIndex
+    //         ? row.map((cell, cIndex) => (cIndex === colIndex ? value : cell))
+    //         : row
+    //     );
+    //     return {
+    //       ...section,
+    //       table: {
+    //         ...section.table,
+    //         rows: newRows
+    //       }
+    //     };
+    //   }
+    //   return section;
+    // }));
   };
 
   return (
@@ -292,7 +366,7 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
                     {row.map((cell, colIndex) => (
                       <TableCell key={colIndex} className="p-2">
                         <Input
-                          value={cell}
+                          value={cell.value}
                           onChange={(e) => updateCell(section.id, rowIndex, colIndex, e.target.value)}
                           className="border-none bg-transparent w-full focus:ring-2 focus:ring-blue-200 rounded px-2 py-1"
                         />
@@ -303,7 +377,7 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => deleteRow(section.id, rowIndex)}
+                          onClick={() => deleteRow(row[0].id)}
                           className="hover:bg-red-100 transition-colors"
                           disabled={section.table.rows.length <= 1}
                         >
@@ -333,7 +407,7 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
                               <span className="font-semibold min-w-[100px] text-gray-600">
                                 {section.table.columns[colIndex]['name']}:
                               </span>
-                              <span className="ml-2 text-gray-800 break-words">{cell}</span>
+                              <span className="ml-2 text-gray-800 break-words">{cell.value}</span>
                             </div>
                           ))}
                         </div>
