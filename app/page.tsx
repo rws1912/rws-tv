@@ -160,7 +160,7 @@ export default function Home() {
               row_number,
               CategoryDataValues (
                 value,
-                category_data_id,
+                id,
                 ColumnDefinitions (
                   column_name
                 )
@@ -175,7 +175,7 @@ export default function Home() {
           const rows = categoryData.map(row => {
             return row.CategoryDataValues.map(cdv => {
               return {
-                id: cdv.category_data_id,
+                id: cdv.id,
                 value: cdv.value
               }
             })
