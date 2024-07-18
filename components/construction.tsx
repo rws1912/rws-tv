@@ -10,8 +10,8 @@ import { supabase } from '@/lib/supabaseClient';
 
 interface TableData {
   id: string;
-  rows: { id: number, value: string }[][];
-  columns: { id: string, name: string }[];
+  rows: {id: number, categoryDataId: number, value: string}[][];
+  columns: {id: string, name: string}[];
   expandedRows: boolean[];
 }
 
@@ -89,7 +89,7 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
       const { data: newCategory, error: categoryError } = await supabase
         .from('Categories')
         .insert([
-          { header: 'New Section', type: 'construction' }
+          { header: 'New Section', type: type }
         ])
         .select()
         .single();
@@ -396,7 +396,7 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
 
       // Add empty values for each existing row
       const rowInserts = section.table.rows.map(row => ({
-        category_data_id: row[0].id, // Assuming the first column's id is the row id
+        category_data_id: row[0].categoryDataId, // Assuming the first column's id is the row id
         column_definition_id: newColumn.id,
         value: ''
       }));
@@ -556,7 +556,7 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
       if (section.id === sectionId) {
         const newRows = section.table.rows.map((row, rIndex) =>
           rIndex === rowIndex
-            ? row.map((cell, cIndex) => (cIndex === colIndex ? { id: cell.id, value: value } : cell))
+            ? row.map((cell, cIndex) => (cIndex === colIndex ? { ...cell, value: value, } : cell))
             : row
         );
         return {
@@ -647,7 +647,7 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => deleteRow(row[0].id)}
+                          onClick={() => deleteRow(row[0].categoryDataId)}
                           className="hover:bg-red-100 transition-colors"
                           disabled={section.table.rows.length <= 1}
                         >
@@ -692,7 +692,7 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
             <Button size="sm" variant="outline" onClick={() => addRow(section.id)}>
               <Plus className="h-3 w-3 mr-1" /> Row
             </Button>
-            <Button size="sm" variant="outline" onClick={() => addColumn(section.id)} disabled={section.table.rows[0].length >= 3}>
+            <Button size="sm" variant="outline" onClick={() => addColumn(section.id)} disabled={section.table.rows.length >= 3}>
               <Plus className="h-3 w-3 mr-1" /> Column
             </Button>
             <Button size="sm" variant="outline" onClick={() => deleteColumn(section.id)} disabled={section.table.rows[0].length <= 1}>

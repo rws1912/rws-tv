@@ -15,8 +15,8 @@ import { Menu, X } from 'lucide-react'; // Assuming you're using Lucide icons
 
 interface TableData {
   id: string;
-  rows: {id: number, value: string}[][];
-  columns: {id: string, name: string}[];
+  rows: { id: number, categoryDataId: number, value: string }[][];
+  columns: { id: string, name: string }[];
   expandedRows: boolean[];
 }
 
@@ -115,6 +115,95 @@ export default function Home() {
     // },
   ]);
 
+  // For construction
+  const fetchConstruction = () => fetchCategoryData('construction', setConstruction);
+
+  // For inspection
+  const fetchInspection = () => fetchCategoryData('inspection', setInspection);
+
+
+  const fetchCategoryData = async (type: 'construction' | 'inspection', setData: React.Dispatch<React.SetStateAction<any[]>>) => {
+    try {
+      // Fetch categories
+      const { data: categories, error: categoriesError } = await supabase
+        .from('Categories')
+        .select('*')
+        .eq('type', type)
+
+      if (categoriesError) throw categoriesError
+
+      const result = await Promise.all(categories.map(async (category) => {
+        // Fetch column definitions
+        const { data: columnDefs, error: columnError } = await supabase
+          .from('ColumnDefinitions')
+          .select('*')
+          .eq('category_id', category.id)
+          .order('column_order')
+
+        if (columnError) throw columnError
+
+        // Fetch category data
+        const { data: categoryData, error: dataError } = await supabase
+          .from('CategoryData')
+          .select(`
+              id,
+              row_number,
+              CategoryDataValues (
+                category_data_id,
+                value,
+                id,
+                ColumnDefinitions (
+                  column_name
+                )
+              )
+            `)
+          .eq('category_id', category.id)
+          .order('row_number')
+
+        if (dataError) throw dataError
+
+        // Structure the rows
+        const rows = categoryData.map(row => {
+          return row.CategoryDataValues.map(cdv => {
+            return {
+              id: cdv.id,
+              categoryDataId: cdv.category_data_id,
+              value: cdv.value
+            }
+          })
+        })
+
+        // Structure the result
+        return {
+          id: category.id.toString(),
+          header: category.header,
+          table: {
+            id: category.id.toString(),
+            rows: rows,
+            columns: columnDefs.map(cd => {
+              return {
+                id: cd.id,
+                name: cd.column_name
+              }
+            }),
+            expandedRows: new Array(rows.length).fill(false)
+          }
+        }
+      }))
+
+      setData(result);
+      console.log(`${type} result:`, result);
+      return result
+
+    } catch (error) {
+      console.error(`Error fetching ${type} data:`, error)
+      return []
+    }
+  }
+
+
+
+
   useEffect(() => {
     const fetchQuotedProjectsData = async () => {
       const { data, error } = await supabase
@@ -132,104 +221,26 @@ export default function Home() {
       }
     }
 
-    const fetchConstruction = async () => {
-      try {
-        // Fetch categories
-        const { data: categories, error: categoriesError } = await supabase
-          .from('Categories')
-          .select('*')
-          .eq('type', 'construction')
-
-        if (categoriesError) throw categoriesError
-
-        const result = await Promise.all(categories.map(async (category) => {
-          // Fetch column definitions
-          const { data: columnDefs, error: columnError } = await supabase
-            .from('ColumnDefinitions')
-            .select('*')
-            .eq('category_id', category.id)
-            .order('column_order')
-
-          if (columnError) throw columnError
-
-          // Fetch category data
-          const { data: categoryData, error: dataError } = await supabase
-            .from('CategoryData')
-            .select(`
-              id,
-              row_number,
-              CategoryDataValues (
-                value,
-                id,
-                ColumnDefinitions (
-                  column_name
-                )
-              )
-            `)
-            .eq('category_id', category.id)
-            .order('row_number')
-
-          if (dataError) throw dataError
-
-          // Structure the rows
-          const rows = categoryData.map(row => {
-            return row.CategoryDataValues.map(cdv => {
-              return {
-                id: cdv.id,
-                value: cdv.value
-              }
-            })
-          })
-
-          // Structure the result
-          return {
-            id: category.id.toString(),
-            header: category.header,
-            table: {
-              id: category.id.toString(),
-              rows: rows,
-              columns: columnDefs.map(cd => {
-                return {
-                  id: cd.id,
-                  name: cd.column_name
-                }
-              }),
-              expandedRows: new Array(rows.length).fill(false)
-            }
-          }
-        }))
-
-        setConstruction(result);
-        console.log("result", result);
-        return result
-
-      } catch (error) {
-        console.error('Error fetching construction data:', error)
-        return []
-      }
-    }
-
-    const subscribeToConstructionData = (onUpdate: (data: Section[]) => void): () => void => {
+    const subscribeToConstructionData = (onUpdate: () => void): () => void => {
       const subscriptions: { unsubscribe: () => void }[] = [];
-    
+
       const handleChange = async () => {
-        console.log("update noticed");
-        const newData = await fetchConstruction();
-        onUpdate(newData);
+
+        onUpdate();
       };
-    
+
       // Subscribe to Categories table
-      // const categoriesSubscription = supabase
-      //   .channel('categories-changes')
-      //   .on(
-      //     'postgres_changes',
-      //     { event: '*', schema: 'public', table: 'Categories' },
-      //     handleChange
-      //   )
-      //   .subscribe();
-    
-      // subscriptions.push(categoriesSubscription);
-    
+      const categoriesSubscription = supabase
+        .channel('categories-changes')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'Categories' },
+          handleChange
+        )
+        .subscribe();
+
+      subscriptions.push(categoriesSubscription);
+
       // Subscribe to CategoryDataValues table
       const categoryDataValuesSubscription = supabase
         .channel('category-data-values-changes')
@@ -239,9 +250,9 @@ export default function Home() {
           handleChange
         )
         .subscribe();
-    
+
       subscriptions.push(categoryDataValuesSubscription);
-    
+
       // Subscribe to ColumnDefinitions table
       const columnDefinitionsSubscription = supabase
         .channel('column-definitions-changes')
@@ -251,15 +262,15 @@ export default function Home() {
           handleChange
         )
         .subscribe();
-    
+
       subscriptions.push(columnDefinitionsSubscription);
-    
+
       // Return a function to unsubscribe from all channels
       return () => {
         subscriptions.forEach(subscription => subscription.unsubscribe());
       };
     };
-    
+
 
     const subscribeDatabase = async () => {
       const channel = supabase.channel('quoted projects').on('postgres_changes', {
@@ -279,8 +290,10 @@ export default function Home() {
     subscribeDatabase();
 
     fetchConstruction();
-    subscribeToConstructionData((newData) => {
-      console.log(newData)
+    fetchInspection();
+    subscribeToConstructionData(() => {
+      fetchConstruction();
+      fetchInspection();
     });
   }, [])
 
