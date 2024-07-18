@@ -307,7 +307,7 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }
       // Update the local state
       setSections(sections.map(s => {
         if (s.id === sectionId) {
-          const newRow = Array(s.table.columns.length).fill('');
+          const newRow = newValues.map((value) => ({id: value.id, categoryDataId: value.category_data_id, value: ''}));
           return {
             ...s,
             table: {
@@ -553,6 +553,7 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }
       console.log('Cell updated successfully:', data);
       return data;
     } catch (error) {
+      console.log("cellId", cellId, "value", value)
       console.error('Error updating cell:', error);
       throw error;
     }
@@ -602,9 +603,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }
           <Table>
             <TableHeader>
               <TableRow>
-                {/* {section.table.rows[0].map((_, colIndex) => (
-                  <TableHead key={colIndex} className="py-2">Column {colIndex + 1}</TableHead>
-                ))} */}
                 {section.table.columns.map((col, colIndex) => (
                   <TableHead key={colIndex} className="py-2">
                     <Input
@@ -618,26 +616,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }
                 <TableHead className="w-20 py-2">Actions</TableHead>
               </TableRow>
             </TableHeader>
-            {/* <TableBody>
-              {section.table.rows.map((row, rowIndex) => (
-                <TableRow key={rowIndex}>
-                  {row.map((cell, colIndex) => (
-                    <TableCell key={colIndex} className="p-0">
-                      <Input
-                        value={cell}
-                        onChange={(e) => updateCell(section.id, rowIndex, colIndex, e.target.value)}
-                        className="border-none h-8"
-                      />
-                    </TableCell>
-                  ))}
-                  <TableCell className="p-0">
-                    <Button variant="ghost" size="sm" onClick={() => deleteRow(section.id, rowIndex)}>
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody> */}
             <TableBody>
               {section.table.rows.map((row, rowIndex) => (
                 <React.Fragment key={rowIndex}>
@@ -645,7 +623,7 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }
                     {row.sort((a, b) => a.id - b.id).map((cell, colIndex) => (
                       <TableCell key={colIndex} className="p-2">
                         <Input
-                          value={cell.value}
+                          value={cell.value ? cell.value.toUpperCase(): ''}
                           onChange={(e) => updateCell(section.id, colIndex, rowIndex, cell.id, e.target.value)}
                           className="border-none bg-transparent w-full focus:ring-2 focus:ring-blue-200 rounded px-2 py-1"
                         />
@@ -686,7 +664,7 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }
                               <span className="font-semibold min-w-[100px] text-gray-600">
                                 {section.table.columns[colIndex]['name']}:
                               </span>
-                              <span className="ml-2 text-gray-800 break-words">{cell.value}</span>
+                              <span className="ml-2 text-gray-800 break-words">{cell.value ? cell.value.toUpperCase() : ''}</span>
                             </div>
                           ))}
                         </div>

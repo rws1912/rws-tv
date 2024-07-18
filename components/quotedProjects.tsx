@@ -13,13 +13,6 @@ import { PlusCircle } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient'
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
-function debounce<F extends (...args: any[]) => any>(func: F, delay: number): (...args: Parameters<F>) => void {
-  let timeoutId: NodeJS.Timeout;
-  return (...args: Parameters<F>) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func(...args), delay);
-  };
-}
 
 const useDebounce = (callback: Function, delay: number) => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -43,7 +36,7 @@ interface Project {
   location: string;
   closingDate: Date;
   closingTime: string;
-  
+
 }
 
 interface Props {
@@ -124,9 +117,15 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef }: Props) => {
 
   const getDaysLeft = (date: Date) => {
     const today = new Date();
-    const diffTime = date.getTime() - today.getTime();
+
+    const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    const diffTime = targetDate.getTime() - todayMidnight.getTime();
+
+    // Convert milliseconds to days
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
+  }
 
   const getRowColor = (daysLeft: number) => {
     if (daysLeft >= 1 && daysLeft <= 10) return 'bg-red-500';
@@ -138,6 +137,7 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef }: Props) => {
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead></TableHead>
           <TableHead>Quotation Ref</TableHead>
           <TableHead>Name of Project</TableHead>
           <TableHead>Location</TableHead>
@@ -147,6 +147,7 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef }: Props) => {
         </TableRow>
       </TableHeader>
       <TableBody>
+
         {sortedProjects.map((project) => {
           const daysLeft = getDaysLeft(project.closingDate);
           const isExpanded = expandedRows[project.id] || false;
@@ -157,6 +158,23 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef }: Props) => {
                 className={`${getRowColor(daysLeft)} hover:bg-opacity-80 transition-colors cursor-pointer`}
                 onClick={() => toggleRowExpansion(project.id)}
               >
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleRowExpansion(project.id);
+                    }}
+                    className="hover:bg-blue-100 transition-colors"
+                  >
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4 text-black" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-black" />
+                    )}
+                  </Button>
+                </TableCell>
                 <TableCell>
                   <Input
                     value={project.quotationRef}
@@ -230,23 +248,6 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef }: Props) => {
                   </Select>
                 </TableCell>
                 <TableCell>{daysLeft}</TableCell>
-                <TableCell>
-                  {/* <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleRowExpansion(project.id);
-                    }}
-                    className="hover:bg-blue-100 transition-colors"
-                  >
-                    {isExpanded ? (
-                      <ChevronUp className="h-4 w-4 text-blue-500" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4 text-blue-500" />
-                    )}
-                  </Button> */}
-                </TableCell>
               </TableRow>
               {isExpanded && (
                 <TableRow className="bg-gray-100">
@@ -265,7 +266,6 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef }: Props) => {
                         <p><strong>Days Left:</strong> {daysLeft}</p>
                       </div>
                     </div>
-                    {/* Add more project details or actions here */}
                   </TableCell>
                 </TableRow>
               )}

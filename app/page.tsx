@@ -216,7 +216,7 @@ export default function Home() {
       } else {
         const projectsWithDateObjects = data.map(project => ({
           ...project,
-          closingDate: project.closingDate ? new Date(project.closingDate) : null
+          closingDate: project.closingDate ? new Date(project.closingDate + 'T00:00:00') : null
         }));
         setProjects(projectsWithDateObjects);
       }
