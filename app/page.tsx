@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect,useRef } from "react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable"
 import QuotedProjects from "@/components/quotedProjects";
 import Construction from "@/components/construction";
@@ -14,14 +14,14 @@ import { Menu, X } from 'lucide-react'; // Assuming you're using Lucide icons
 // const Inspection = () => <div className="h-full bg-gray-300 p-4">Inspection Component</div>;
 
 interface TableData {
-  id: string;
+  id: number;
   rows: { id: number, categoryDataId: number, value: string }[][];
   columns: { id: string, name: string }[];
   expandedRows: boolean[];
 }
 
 interface Section {
-  id: string;
+  id: number;
   header: string;
   table: TableData;
 }
@@ -38,6 +38,8 @@ interface Project {
 export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const isLocalUpdateRef = useRef<boolean>(false);
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -192,7 +194,6 @@ export default function Home() {
       }))
 
       setData(result);
-      console.log(`${type} result:`, result);
       return result
 
     } catch (error) {
@@ -225,7 +226,6 @@ export default function Home() {
       const subscriptions: { unsubscribe: () => void }[] = [];
 
       const handleChange = async () => {
-
         onUpdate();
       };
 
@@ -271,20 +271,44 @@ export default function Home() {
       };
     };
 
-
     const subscribeDatabase = async () => {
       const channel = supabase.channel('quoted projects').on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'QuotedProjects'
       }, () => {
-        fetchQuotedProjectsData();
+        if (!isLocalUpdateRef.current) {
+          console.log("updating quoted projects from DB");
+          fetchQuotedProjectsData();
+        } else {
+          console.log("Local change");
+        }
+        
+        isLocalUpdateRef.current = false;
       }).subscribe()
 
       return () => {
         supabase.removeChannel(channel);
       }
     }
+    // const subscribeDatabase = (onUpdate: () => void): () => void => {
+    //   const channel = supabase.channel('quoted projects')
+    //   .on('postgres_changes', 
+    //     {
+    //       event: '*',
+    //       schema: 'public',
+    //       table: 'QuotedProjects'
+    //     }, 
+    //     (payload) => {
+    //       console.log('Change received!', payload);
+    //       onUpdate();
+    //     }
+    //   )
+
+    //   return () => {
+    //     supabase.removeChannel(channel);
+    //   }
+    // }
 
     fetchQuotedProjectsData();
     subscribeDatabase();
@@ -292,8 +316,14 @@ export default function Home() {
     fetchConstruction();
     fetchInspection();
     subscribeToConstructionData(() => {
-      fetchConstruction();
-      fetchInspection();
+      console.log("About to update UI from database", isLocalUpdateRef.current);
+      if (!isLocalUpdateRef.current) {
+        fetchConstruction();
+        fetchInspection();
+      } else {
+        console.log("Cancelled updating UI since local")
+      }
+      isLocalUpdateRef.current = false;
     });
   }, [])
 
@@ -313,15 +343,15 @@ export default function Home() {
         <div className="flex-1 overflow-y-auto">
           <section id="projects" className="p-4">
             <h2 className="text-xl font-bold mb-4">Projects</h2>
-            <QuotedProjects projects={projects} setProjects={setProjects} />
+            <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} />
           </section>
           <section id="construction" className="p-4">
             <h2 className="text-xl font-bold mb-4">Construction</h2>
-            <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} />
+            <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} />
           </section>
           <section id="inspection" className="p-4">
             <h2 className="text-xl font-bold mb-4">Inspection</h2>
-            <Construction styling={'bg-blue-200'} type={"inspection"} sections={inspection} setSections={setInspection} />
+            <Construction styling={'bg-blue-200'} type={"inspection"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} />
           </section>
         </div>
       </div>
@@ -335,17 +365,17 @@ export default function Home() {
         <ResizablePanel defaultSize={60}>
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel defaultSize={50} className="!overflow-y-auto">
-              <QuotedProjects projects={projects} setProjects={setProjects} />
+              <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} />
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={50} className="!overflow-y-auto">
-              <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} />
+              <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef}/>
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={40} className="!overflow-y-auto">
-          <Construction styling={'bg-blue-200'} type={"inspection"} sections={inspection} setSections={setInspection} />
+          <Construction styling={'bg-blue-200'} type={"inspection"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} />
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

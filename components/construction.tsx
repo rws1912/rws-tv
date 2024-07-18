@@ -9,14 +9,14 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 
 interface TableData {
-  id: string;
-  rows: {id: number, categoryDataId: number, value: string}[][];
-  columns: {id: string, name: string}[];
+  id: number;
+  rows: { id: number, categoryDataId: number, value: string }[][];
+  columns: { id: string, name: string }[];
   expandedRows: boolean[];
 }
 
 interface Section {
-  id: string;
+  id: number;
   header: string;
   table: TableData;
 }
@@ -26,6 +26,7 @@ interface Props {
   styling: string;
   sections: Section[];
   setSections: React.Dispatch<React.SetStateAction<Section[]>>;
+  isLocalUpdateRef: React.MutableRefObject<boolean>;
 
 }
 
@@ -51,8 +52,8 @@ const useDebounce = (callback: Function, delay: number) => {
   }, [callback, delay]);
 };
 
-const Construction = ({ type, styling, sections, setSections }: Props) => {
-  const toggleRowExpansion = (sectionId: string, rowIndex: number) => {
+const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }: Props) => {
+  const toggleRowExpansion = (sectionId: number, rowIndex: number) => {
     setSections(sections.map(section => {
       if (section.id === sectionId) {
         const newExpandedRows = [...section.table.expandedRows];
@@ -138,7 +139,6 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
 
       if (valueError) throw valueError;
 
-      console.log('New section added successfully');
 
     } catch (error) {
       console.error('Error adding new section:', error);
@@ -146,7 +146,7 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
     }
   };
 
-  const printSection = (sectionId: string) => {
+  const printSection = (sectionId: number) => {
     const sectionToPrint = sections.find(section => section.id === sectionId);
 
     if (!sectionToPrint) {
@@ -174,13 +174,13 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
         <table>
           <thead>
             <tr>
-              ${sectionToPrint.table.columns.map(col => `<th>${col}</th>`).join('')}
+              ${sectionToPrint.table.columns.map(col => `<th>${col.name}</th>`).join('')}
             </tr>
           </thead>
           <tbody>
             ${sectionToPrint.table.rows.map(row => `
               <tr>
-                ${row.map(cell => `<td>${cell}</td>`).join('')}
+                ${row.map(cell => `<td>${cell.value}</td>`).join('')}
               </tr>
             `).join('')}
           </tbody>
@@ -200,8 +200,12 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
     newWindow!.close();
   };
 
-  const deleteSection = async (sectionId: string) => {
+  const deleteSection = async (sectionId: number) => {
     try {
+      isLocalUpdateRef.current = true;
+
+      setSections(prevSections => prevSections.filter(section => section.id !== sectionId));
+
       // Delete the section from the Categories table
       const { error } = await supabase
         .from('Categories')
@@ -211,7 +215,6 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
       if (error) throw error;
 
       // If deletion is successful, update the local state
-      // setSections(prevSections => prevSections.filter(section => section.id !== sectionId));
 
       console.log(`Section ${sectionId} deleted successfully`);
     } catch (error) {
@@ -237,12 +240,9 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
     }
   }, 500); // 500ms delay
 
-  // const updateHeader = (sectionId: string, newHeader: string) => {
-  //   setSections(sections.map(section =>
-  //     section.id === sectionId ? { ...section, header: newHeader } : section
-  //   ));
-  // };
-  const updateHeader = useCallback((sectionId: string, newHeader: string) => {
+  const updateHeader = useCallback((sectionId: number, newHeader: string) => {
+    isLocalUpdateRef.current = true;
+
     // Immediately update local state for responsive UI
     setSections(prevSections => prevSections.map(section =>
       section.id === sectionId ? { ...section, header: newHeader } : section
@@ -267,8 +267,10 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
   //     return section;
   //   }));
   // };
-  const addRow = async (sectionId: string) => {
+  const addRow = async (sectionId: number) => {
     try {
+      isLocalUpdateRef.current = true;
+
       // Find the section in the current state
       const section = sections.find(s => s.id === sectionId);
       if (!section) {
@@ -303,20 +305,20 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
       if (valuesError) throw valuesError;
 
       // Update the local state
-      // setSections(sections.map(s => {
-      //   if (s.id === sectionId) {
-      //     const newRow = Array(s.table.columns.length).fill('');
-      //     return {
-      //       ...s,
-      //       table: {
-      //         ...s.table,
-      //         rows: [...s.table.rows, newRow],
-      //         expandedRows: [...s.table.expandedRows, false] // Add a new expandedRow state
-      //       }
-      //     };
-      //   }
-      //   return s;
-      // }));
+      setSections(sections.map(s => {
+        if (s.id === sectionId) {
+          const newRow = Array(s.table.columns.length).fill('');
+          return {
+            ...s,
+            table: {
+              ...s.table,
+              rows: [...s.table.rows, newRow],
+              expandedRows: [...s.table.expandedRows, false] // Add a new expandedRow state
+            }
+          };
+        }
+        return s;
+      }));
 
       console.log('New row added successfully');
     } catch (error) {
@@ -324,8 +326,10 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
     }
   };
 
-  const deleteRow = async (rowId: number) => {
+  const deleteRow = async (rowId: number, sectionId: number, rowIndex: number) => {
     try {
+      isLocalUpdateRef.current = true;
+
       const { error } = await supabase
         .from('CategoryData')
         .delete()
@@ -337,19 +341,19 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
 
       console.log(`Row ${rowId} deleted successfully`);
 
-      // setSections(sections.map(section => {
-      //   if (section.id === sectionId) {
-      //     const newRows = section.table.rows.filter((_, index) => index !== rowIndex);
-      //     return {
-      //       ...section,
-      //       table: {
-      //         ...section.table,
-      //         rows: newRows
-      //       }
-      //     };
-      //   }
-      //   return section;
-      // }));
+      setSections(sections.map(section => {
+        if (section.id === sectionId) {
+          const newRows = section.table.rows.filter((_, index) => index !== rowIndex);
+          return {
+            ...section,
+            table: {
+              ...section.table,
+              rows: newRows
+            }
+          };
+        }
+        return section;
+      }));
 
     } catch (error) {
       console.error('Error deleting row:', error);
@@ -373,8 +377,10 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
   //   return section;
   // }));
   // };
-  const addColumn = async (sectionId: string) => {
+  const addColumn = async (sectionId: number) => {
     try {
+      isLocalUpdateRef.current = true;
+
       const section = sections.find(s => s.id === sectionId);
       if (!section) {
         console.error('Section not found');
@@ -411,7 +417,7 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
       // Update local state
       // setSections(prevSections => prevSections.map(s => {
       //   if (s.id === sectionId) {
-      //     const newRows = s.table.rows.map(row => [...row, { id: row[0].id, value: '' }]);
+      //     const newRows = s.table.rows.map(row => [...row, { id: row[0].id, value: '', categoryDataId: row[0].categoryDataId }]);
       //     return {
       //       ...s,
       //       table: {
@@ -430,7 +436,9 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
     }
   };
 
-
+  // useEffect(() => {
+  //   console.log("Sections is", sections);
+  // }, [sections])
 
   // const deleteColumn = (sectionId: string) => {
   // setSections(sections.map(section => {
@@ -449,8 +457,10 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
   //   return section;
   // }));
   // };
-  const deleteColumn = async (sectionId: string) => {
+  const deleteColumn = async (sectionId: number) => {
     try {
+      isLocalUpdateRef.current = true;
+
       const section = sections.find(s => s.id === sectionId);
       if (!section || section.table.columns.length <= 1) {
         console.error('Section not found or only one column remains');
@@ -468,21 +478,21 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
       if (columnDeleteError) throw columnDeleteError;
 
       // Update local state
-      // setSections(prevSections => prevSections.map(s => {
-      //   if (s.id === sectionId) {
-      //     const newRows = s.table.rows.map(row => row.slice(0, -1));
-      //     const newCols = s.table.columns.slice(0, -1);
-      //     return {
-      //       ...s,
-      //       table: {
-      //         ...s.table,
-      //         rows: newRows,
-      //         columns: newCols
-      //       }
-      //     };
-      //   }
-      //   return s;
-      // }));
+      setSections(prevSections => prevSections.map(s => {
+        if (s.id === sectionId) {
+          const newRows = s.table.rows.map(row => row.slice(0, -1));
+          const newCols = s.table.columns.slice(0, -1);
+          return {
+            ...s,
+            table: {
+              ...s.table,
+              rows: newRows,
+              columns: newCols
+            }
+          };
+        }
+        return s;
+      }));
 
       console.log('Last column deleted successfully');
     } catch (error) {
@@ -507,7 +517,9 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
     }
   }, 500)
 
-  const updateColumn = useCallback((colId: string, sectionId: string, rowIndex: number, value: string) => {
+  const updateColumn = useCallback((colId: string, sectionId: number, rowIndex: number, value: string) => {
+    isLocalUpdateRef.current = true;
+
     setSections(prevSections => prevSections.map(section => {
       if (section.id === sectionId) {
         const newCol = section.table.columns.map((col, index) =>
@@ -530,7 +542,6 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
 
   const debouncedUpdateCell = useDebounce(async (cellId: number, value: string) => {
     try {
-      console.log("Cell id is", cellId);
       const { data, error } = await supabase
         .from('CategoryDataValues')
         .update({ value: value })
@@ -547,11 +558,9 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
     }
   }, 500)
 
-  useEffect(() => {
-    console.log("Sections is", sections)
-  }, [sections])
+  const updateCell = useCallback((sectionId: number, colIndex: number, rowIndex: number, cellId: number, value: string) => {
+    isLocalUpdateRef.current = true;
 
-  const updateCell = useCallback((sectionId: string, colIndex: number, rowIndex: number, cellId: number, value: string) => {
     setSections(sections.map(section => {
       if (section.id === sectionId) {
         const newRows = section.table.rows.map((row, rIndex) =>
@@ -647,7 +656,7 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => deleteRow(row[0].categoryDataId)}
+                          onClick={() => deleteRow(row[0].categoryDataId, section.id, rowIndex)}
                           className="hover:bg-red-100 transition-colors"
                           disabled={section.table.rows.length <= 1}
                         >
@@ -692,7 +701,7 @@ const Construction = ({ type, styling, sections, setSections }: Props) => {
             <Button size="sm" variant="outline" onClick={() => addRow(section.id)}>
               <Plus className="h-3 w-3 mr-1" /> Row
             </Button>
-            <Button size="sm" variant="outline" onClick={() => addColumn(section.id)} disabled={section.table.rows.length >= 3}>
+            <Button size="sm" variant="outline" onClick={() => addColumn(section.id)} disabled={section.table.rows[0].length >= 3}>
               <Plus className="h-3 w-3 mr-1" /> Column
             </Button>
             <Button size="sm" variant="outline" onClick={() => deleteColumn(section.id)} disabled={section.table.rows[0].length <= 1}>
