@@ -419,7 +419,6 @@ export default function Home() {
   // Desktop layout with resizable panels
   return (
     <div className="h-screen w-screen">
-      <button onClick={resizePanel}>Resize Panel</button>
       <ResizablePanelGroup direction="horizontal" className="h-full">
         <ResizablePanel defaultSize={60}>
           <ResizablePanelGroup direction="vertical">
