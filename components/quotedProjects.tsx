@@ -69,7 +69,7 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef }: Props) => {
       name: '',
       location: '',
       closingDate: new Date(),
-      closingTime: '12:00',
+      closingTime: '23:00',
     };
 
     const { data, error } = await supabase
