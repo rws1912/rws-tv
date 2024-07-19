@@ -146,6 +146,86 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }
     }
   };
 
+  const printWholeSection = () => {
+    // Create HTML content for all sections
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>All Sections</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 30px;
+          }
+          table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+          }
+          th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            color: #2c3e50;
+          }
+          tr:nth-child(even) {
+            background-color: #f9f9f9;
+          }
+          @media print {
+            body {
+              padding: 0;
+              max-width: none;
+            }
+            table {
+              page-break-inside: avoid;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        ${sections.map(section => `
+          <h1>${section.header}</h1>
+          <table>
+            <thead>
+              <tr>
+                ${section.table.columns.map(col => `<th>${col.name}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${section.table.rows.map(row => `
+                <tr>
+                  ${row.map(cell => `<td>${cell.value}</td>`).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `).join('')}
+      </body>
+      </html>
+    `;
+
+    // Open the HTML content in a new tab and print it
+    openHtmlInNewTab(htmlContent);
+  }
+
   const printSection = (sectionId: number) => {
     const sectionToPrint = sections.find(section => section.id === sectionId);
 
@@ -307,7 +387,7 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }
       // Update the local state
       setSections(sections.map(s => {
         if (s.id === sectionId) {
-          const newRow = newValues.map((value) => ({id: value.id, categoryDataId: value.category_data_id, value: ''}));
+          const newRow = newValues.map((value) => ({ id: value.id, categoryDataId: value.category_data_id, value: '' }));
           return {
             ...s,
             table: {
@@ -584,122 +664,132 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }
   }, [debouncedUpdateCell])
 
   return (
-    <div className="space-y-4">
-      {sections.map((section) => (
-        <div key={section.id} className="border rounded-lg overflow-hidden">
-          <div className={`flex justify-between items-center ${styling} p-2`}>
-            <Input
-              value={section.header}
-              onChange={(e) => updateHeader(section.id, e.target.value)}
-              className="text-lg font-semibold bg-transparent border-none"
-            />
-            <Button variant="ghost" size="sm" onClick={() => deleteSection(section.id)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => printSection(section.id)}>
-              <Printer className="h-4 w-4" />
-            </Button>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {section.table.columns.map((col, colIndex) => (
-                  <TableHead key={colIndex} className="py-2">
-                    <Input
-                      value={col['name']}
-                      onChange={(e) => updateColumn(col.id, section.id, colIndex, e.target.value)}
-                      className="border-none h-8"
-                    />
+    <>
+      <div className='mb-2 mt-2 sticky'>
+        <Button onClick={addSection}>
+          <Plus className="h-4 w-4 mr-2" /> Add New Section
+        </Button>
 
-                  </TableHead>
-                ))}
-                <TableHead className="w-20 py-2">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {section.table.rows.map((row, rowIndex) => (
-                <React.Fragment key={rowIndex}>
-                  <TableRow className="hover:bg-gray-50 transition-colors">
-                    {row.sort((a, b) => a.id - b.id).map((cell, colIndex) => (
-                      <TableCell key={colIndex} className="p-2">
-                        <Input
-                          value={cell.value ? cell.value.toUpperCase(): ''}
-                          onChange={(e) => updateCell(section.id, colIndex, rowIndex, cell.id, e.target.value)}
-                          className="border-none bg-transparent w-full focus:ring-2 focus:ring-blue-200 rounded px-2 py-1"
-                        />
-                      </TableCell>
-                    ))}
-                    <TableCell className="p-2">
-                      <div className="flex space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteRow(row[0].categoryDataId, section.id, rowIndex)}
-                          className="hover:bg-red-100 transition-colors"
-                          disabled={section.table.rows.length <= 1}
-                        >
-                          <Minus className="h-4 w-4 text-red-500" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleRowExpansion(section.id, rowIndex)}
-                          className="hover:bg-blue-100 transition-colors"
-                        >
-                          {section.table.expandedRows[rowIndex] ? (
-                            <ChevronUp className="h-4 w-4 text-blue-500" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4 text-blue-500" />
-                          )}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  {section.table.expandedRows[rowIndex] && (
-                    <TableRow>
-                      <TableCell colSpan={row.length + 1} className="bg-gray-100 p-0">
-                        <div className="p-4 space-y-2">
-                          {row.map((cell, colIndex) => (
-                            <div key={colIndex} className="flex">
-                              <span className="font-semibold min-w-[100px] text-gray-600">
-                                {section.table.columns[colIndex]['name']}:
-                              </span>
-                              <span className="ml-2 text-gray-800 break-words">{cell.value ? cell.value.toUpperCase() : ''}</span>
-                            </div>
-                          ))}
+        <Button onClick={printWholeSection} variant='outline' className="ml-4 mr-4">
+          <Printer className="h-4 w-4 mr-2" /> Print {type}
+        </Button>
+
+        {type === 'construction' &&
+          <Link href='/equipment'>
+            <Button className="mt-2" variant={'secondary'}>
+              <ConstructionIcon className="h-4 w-4 mr-2" /> Equipment List
+            </Button>
+          </Link>
+        }
+      </div>
+      <div className="space-y-4">
+        {sections.map((section) => (
+          <div key={section.id} className="border rounded-lg overflow-hidden">
+            <div className={`flex justify-between items-center ${styling} p-2`}>
+              <Input
+                value={section.header}
+                onChange={(e) => updateHeader(section.id, e.target.value)}
+                className="text-lg font-semibold bg-transparent border-none"
+              />
+              <Button variant="ghost" size="sm" onClick={() => deleteSection(section.id)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => printSection(section.id)}>
+                <Printer className="h-4 w-4" />
+              </Button>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {section.table.columns.map((col, colIndex) => (
+                    <TableHead key={colIndex} className="py-2">
+                      <Input
+                        value={col['name']}
+                        onChange={(e) => updateColumn(col.id, section.id, colIndex, e.target.value)}
+                        className="border-none h-8"
+                      />
+
+                    </TableHead>
+                  ))}
+                  <TableHead className="w-20 py-2">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {section.table.rows.map((row, rowIndex) => (
+                  <React.Fragment key={rowIndex}>
+                    <TableRow className="hover:bg-gray-50 transition-colors">
+                      {row.sort((a, b) => a.id - b.id).map((cell, colIndex) => (
+                        <TableCell key={colIndex} className="p-2">
+                          <Input
+                            value={cell.value ? cell.value.toUpperCase() : ''}
+                            onChange={(e) => updateCell(section.id, colIndex, rowIndex, cell.id, e.target.value)}
+                            className="border-none bg-transparent w-full focus:ring-2 focus:ring-blue-200 rounded px-2 py-1"
+                          />
+                        </TableCell>
+                      ))}
+                      <TableCell className="p-2">
+                        <div className="flex space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteRow(row[0].categoryDataId, section.id, rowIndex)}
+                            className="hover:bg-red-100 transition-colors"
+                            disabled={section.table.rows.length <= 1}
+                          >
+                            <Minus className="h-4 w-4 text-red-500" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleRowExpansion(section.id, rowIndex)}
+                            className="hover:bg-blue-100 transition-colors"
+                          >
+                            {section.table.expandedRows[rowIndex] ? (
+                              <ChevronUp className="h-4 w-4 text-blue-500" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4 text-blue-500" />
+                            )}
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
-                  )}
-                </React.Fragment>
-              ))}
-            </TableBody>
-          </Table>
-          <div className="flex justify-end space-x-1 p-2 bg-gray-50">
-            <Button size="sm" variant="outline" onClick={() => addRow(section.id)}>
-              <Plus className="h-3 w-3 mr-1" /> Row
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => addColumn(section.id)} disabled={section.table.rows[0].length >= 3}>
-              <Plus className="h-3 w-3 mr-1" /> Column
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => deleteColumn(section.id)} disabled={section.table.rows[0].length <= 1}>
-              <Minus className="h-3 w-3 mr-1" /> Column
-            </Button>
+                    {section.table.expandedRows[rowIndex] && (
+                      <TableRow>
+                        <TableCell colSpan={row.length + 1} className="bg-gray-100 p-0">
+                          <div className="p-4 space-y-2">
+                            {row.map((cell, colIndex) => (
+                              <div key={colIndex} className="flex">
+                                <span className="font-semibold min-w-[100px] text-gray-600">
+                                  {section.table.columns[colIndex]['name']}:
+                                </span>
+                                <span className="ml-2 text-gray-800 break-words">{cell.value ? cell.value.toUpperCase() : ''}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                ))}
+              </TableBody>
+            </Table>
+            <div className="flex justify-end space-x-1 p-2 bg-gray-50">
+              <Button size="sm" variant="outline" onClick={() => addRow(section.id)}>
+                <Plus className="h-3 w-3 mr-1" /> Row
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => addColumn(section.id)} disabled={section.table.rows[0].length >= 3}>
+                <Plus className="h-3 w-3 mr-1" /> Column
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => deleteColumn(section.id)} disabled={section.table.rows[0].length <= 1}>
+                <Minus className="h-3 w-3 mr-1" /> Column
+              </Button>
+            </div>
           </div>
-        </div>
-      ))}
-      <Button onClick={addSection} className="mt-4">
-        <Plus className="h-4 w-4 mr-2" /> Add New Section
-      </Button>
+        ))}
 
-      {type === 'construction' &&
-        <Link href='/equipment'>
-          <Button className="mt-4 ml-4" variant="outline">
-            <ConstructionIcon className="h-4 w-4 mr-2" /> Equipment List
-          </Button>
-        </Link>
-      }
-    </div>
+
+      </div>
+    </>
   );
 };
 
