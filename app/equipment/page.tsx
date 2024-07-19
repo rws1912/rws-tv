@@ -279,6 +279,15 @@ const InventoryTable = () => {
         }
     };
 
+    const expandAll = () => {
+        const allTypes = Object.keys(groupedItems);
+        setExpandedGroups(new Set(allTypes));
+    }
+    
+    const collapseAll = () => {
+        setExpandedGroups(new Set());
+    }
+
 
     const renderGroupHeader = (type: string, count: number) => (
         <TableRow
@@ -313,30 +322,34 @@ const InventoryTable = () => {
         <div className="h-screen w-screen overflow-auto p-4">
             <div className="mb-4 flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Equipment List</h1>
-                <Dialog open={newTypeDialogOpen} onOpenChange={setNewTypeDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button>
-                            <PlusCircle className="h-4 w-4 mr-2" />
-                            Add New Type
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Add New Equipment Type</DialogTitle>
-                            <DialogDescription>
-                                Enter the name for the new equipment type.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <Input
-                            value={newTypeName}
-                            onChange={(e) => setNewTypeName(e.target.value)}
-                            placeholder="Enter new type name"
-                        />
-                        <DialogFooter>
-                            <Button onClick={handleAddNewType}>Add</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                <div className='items-center space-x-4'>
+                    <Button variant={'outline'} onClick={expandAll}>Expand All</Button>
+                    <Button variant={'secondary'} onClick={collapseAll}>Collapse All</Button>
+                    <Dialog open={newTypeDialogOpen} onOpenChange={setNewTypeDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button>
+                                <PlusCircle className="h-4 w-4 mr-2" />
+                                Add New Type
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Add New Equipment Type</DialogTitle>
+                                <DialogDescription>
+                                    Enter the name for the new equipment type.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <Input
+                                value={newTypeName}
+                                onChange={(e) => setNewTypeName(e.target.value)}
+                                placeholder="Enter new type name"
+                            />
+                            <DialogFooter>
+                                <Button onClick={handleAddNewType}>Add</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
             <Table>
                 <TableHeader>
