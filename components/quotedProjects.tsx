@@ -43,9 +43,10 @@ interface Props {
   projects: Project[];
   setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
   isLocalUpdateRef: React.MutableRefObject<boolean>;
+  projectsRowRef: React.RefObject<HTMLTableRowElement>;
 }
 
-const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef }: Props) => {
+const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef, projectsRowRef }: Props) => {
   const [expandedRows, setExpandedRows] = useState<{ [key: string]: boolean }>({});
 
   const [sortedProjects, setSortedProjects] = useState<Project[]>([]);
@@ -155,6 +156,7 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef }: Props) => {
           return (
             <React.Fragment key={project.id}>
               <TableRow
+                ref={projectsRowRef}
                 className={`${getRowColor(daysLeft)} hover:bg-opacity-80 transition-colors cursor-pointer`}
                 onClick={() => toggleRowExpansion(project.id)}
               >

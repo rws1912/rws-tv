@@ -2,6 +2,7 @@
 
 import { useState, useEffect,useRef } from "react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable"
+import {ImperativePanelHandle} from 'react-resizable-panels';
 import QuotedProjects from "@/components/quotedProjects";
 import Construction from "@/components/construction";
 import Inspection from "@/components/inspection";
@@ -41,6 +42,9 @@ export default function Home() {
 
   const isLocalUpdateRef = useRef<boolean>(false);
 
+  const panelRef = useRef<ImperativePanelHandle>(null);
+  const projectsRowRef = useRef<HTMLTableRowElement>(null);
+
   useEffect(() => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768); // Adjust this breakpoint as needed
@@ -67,7 +71,7 @@ export default function Home() {
       <nav className="flex flex-col items-center">
         <button onClick={() => handleNavigation('projects')} className="text-white py-2">Projects</button>
         <button onClick={() => handleNavigation('construction')} className="text-white py-2">Construction</button>
-        <button onClick={() => handleNavigation('inspection')} className="text-white py-2">Inspection</button>
+        <button onClick={() => handleNavigation('inspection')} className="text-white py-2 h-14">Inspection</button>
       </nav>
     </div>
   );
@@ -350,12 +354,43 @@ export default function Home() {
     });
   }, [])
 
+  const resizePanel = () => {
+    if (panelRef.current) {
+      if (projectsRowRef.current) {
+        console.log("Row Height", projectsRowRef.current.getBoundingClientRect());
+      }
+
+      // Get the number of projects
+      const numberOfProjects = projects.length + 6;
+  
+      // Calculate the total height of all rows (56px per row)
+      const totalRowsHeight = numberOfProjects * 56;
+  
+      // Get the total height of the screen
+      const screenHeight = window.innerHeight;
+  
+      // Calculate the percentage of the screen height that the rows occupy
+      let percentage = (totalRowsHeight / screenHeight) * 100;
+  
+      // Round up to the nearest integer and ensure it doesn't exceed 100
+      percentage = Math.min(Math.ceil(percentage), 100);
+
+      console.log("Total Rows Height", totalRowsHeight);
+      console.log("Current screenHeight", screenHeight);
+
+      console.log("Panel resized is", percentage);
+  
+      // Resize the panel
+      panelRef.current.resize(percentage);
+    }
+  };
 
 
 
   if (isMobile) {
     return (
       <div className="h-screen w-screen flex flex-col">
+        {/* <button onClick={resizePanel}>Resize</button> */}
         <header className="bg-gray-800 text-white p-4 flex justify-between items-center">
           <h1>Project Management</h1>
           <button onClick={() => setMenuOpen(true)}>
@@ -366,7 +401,7 @@ export default function Home() {
         <div className="flex-1 overflow-y-auto">
           <section id="projects" className="p-4">
             <h2 className="text-xl font-bold mb-4">Projects</h2>
-            <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} />
+            <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} projectsRowRef={projectsRowRef}/>
           </section>
           <section id="construction" className="p-4">
             <h2 className="text-xl font-bold mb-4">Construction</h2>
@@ -384,14 +419,15 @@ export default function Home() {
   // Desktop layout with resizable panels
   return (
     <div className="h-screen w-screen">
+      <button onClick={resizePanel}>Resize Panel</button>
       <ResizablePanelGroup direction="horizontal" className="h-full">
         <ResizablePanel defaultSize={60}>
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel defaultSize={50} className="!overflow-y-auto">
-              <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} />
+              <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} projectsRowRef={projectsRowRef} />
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={50} className="!overflow-y-auto">
+            <ResizablePanel defaultSize={50} className="!overflow-y-auto" ref={panelRef}>
               <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef}/>
             </ResizablePanel>
           </ResizablePanelGroup>
