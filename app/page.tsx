@@ -131,6 +131,7 @@ export default function Home() {
         .from('Categories')
         .select('*')
         .eq('type', type)
+        .order('date_added', {ascending: true})
 
       if (categoriesError) throw categoriesError
 
@@ -202,25 +203,47 @@ export default function Home() {
     }
   }
 
-
-
-
   useEffect(() => {
     const fetchQuotedProjectsData = async () => {
-      const { data, error } = await supabase
-        .from('QuotedProjects')
-        .select();
-
-      if (error) {
-        console.error('Error fetching data:', error);
-      } else {
-        const projectsWithDateObjects = data.map(project => ({
-          ...project,
-          closingDate: project.closingDate ? new Date(project.closingDate + 'T00:00:00') : null
-        }));
-        setProjects(projectsWithDateObjects);
+      try {
+        const { data, error } = await supabase
+          .from('QuotedProjects')
+          .select();
+  
+        if (error) {
+          throw error;
+        }
+  
+        const currentDate = new Date();
+        const filteredProjects = [];
+  
+        for (const project of data) {
+          const closingDate = project.closingDate ? new Date(project.closingDate + 'T00:00:00') : null;
+          const closingTime = new Date(project.closingDate + 'T' + project.closingTime);
+  
+          if (closingDate && (closingDate > currentDate || (closingDate.toDateString() === currentDate.toDateString() && closingTime > currentDate))) {
+            filteredProjects.push({
+              ...project,
+              closingDate: closingDate, 
+            });
+          } else {
+            // Delete project from database
+            const { error: deleteError } = await supabase
+              .from('QuotedProjects')
+              .delete()
+              .match({ id: project.id });
+  
+            if (deleteError) {
+              console.error('Error deleting project:', deleteError);
+            }
+          }
+        }
+  
+        setProjects(filteredProjects);
+      } catch (error) {
+        console.error('Error fetching or processing data:', error);
       }
-    }
+    };
 
     const subscribeToConstructionData = (onUpdate: () => void): () => void => {
       const subscriptions: { unsubscribe: () => void }[] = [];
