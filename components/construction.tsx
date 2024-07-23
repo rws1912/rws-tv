@@ -27,6 +27,7 @@ interface Props {
   sections: Section[];
   setSections: React.Dispatch<React.SetStateAction<Section[]>>;
   isLocalUpdateRef: React.MutableRefObject<boolean>;
+  isMobile: boolean
 
 }
 
@@ -52,7 +53,7 @@ const useDebounce = (callback: Function, delay: number) => {
   }, [callback, delay]);
 };
 
-const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }: Props) => {
+const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, isMobile }: Props) => {
   const toggleRowExpansion = (sectionId: number, rowIndex: number) => {
     setSections(sections.map(section => {
       if (section.id === sectionId) {
@@ -69,6 +70,8 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }
       return section;
     }));
   };
+
+  console.log("isMobile", isMobile);
 
   // const addSection = () => {
   // const newSection: Section = {
@@ -773,6 +776,7 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }
                 ))}
               </TableBody>
             </Table>
+            {!isMobile && 
             <div className="flex justify-end space-x-1 p-2 bg-gray-50">
               <Button size="sm" variant="outline" onClick={() => addRow(section.id)}>
                 <Plus className="h-3 w-3 mr-1" /> Row
@@ -783,7 +787,7 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }
               <Button size="sm" variant="outline" onClick={() => deleteColumn(section.id)} disabled={section.table.rows[0].length <= 1}>
                 <Minus className="h-3 w-3 mr-1" /> Column
               </Button>
-            </div>
+            </div>}
           </div>
         ))}
 

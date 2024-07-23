@@ -405,11 +405,11 @@ export default function Home() {
           </section>
           <section id="construction" className="p-4">
             <h2 className="text-xl font-bold mb-4">Construction</h2>
-            <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} />
+            <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile}/>
           </section>
           <section id="inspection" className="p-4">
             <h2 className="text-xl font-bold mb-4">Inspection</h2>
-            <Construction styling={'bg-blue-200'} type={"inspection"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} />
+            <Construction styling={'bg-blue-200'} type={"inspection"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile}/>
           </section>
         </div>
       </div>
@@ -427,13 +427,13 @@ export default function Home() {
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={50} className="!overflow-y-auto" ref={panelRef}>
-              <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef}/>
+              <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={false}/>
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={40} className="!overflow-y-auto">
-          <Construction styling={'bg-blue-200'} type={"inspection"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} />
+          <Construction styling={'bg-blue-200'} type={"inspection"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={false}/>
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
