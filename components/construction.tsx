@@ -212,7 +212,7 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }
             <tbody>
               ${section.table.rows.map(row => `
                 <tr>
-                  ${row.map(cell => `<td>${cell.value}</td>`).join('')}
+                  ${row.map(cell => `<td>${cell.value.toUpperCase()}</td>`).join('')}
                 </tr>
               `).join('')}
             </tbody>
@@ -254,13 +254,13 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef }
         <table>
           <thead>
             <tr>
-              ${sectionToPrint.table.columns.map(col => `<th>${col.name}</th>`).join('')}
+              ${sectionToPrint.table.columns.map(col => `<th>${col.name.toUpperCase()}</th>`).join('')}
             </tr>
           </thead>
           <tbody>
             ${sectionToPrint.table.rows.map(row => `
               <tr>
-                ${row.map(cell => `<td>${cell.value}</td>`).join('')}
+                ${row.map(cell => `<td>${cell.value.toUpperCase()}</td>`).join('')}
               </tr>
             `).join('')}
           </tbody>
