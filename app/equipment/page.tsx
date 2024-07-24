@@ -12,9 +12,10 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Dialog } from '@radix-ui/react-dialog';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import Link from 'next/link';
 
 
 interface Item {
@@ -326,7 +327,13 @@ const InventoryTable = () => {
     return (
         <div className="h-screen w-screen overflow-auto p-4">
             <div className="mb-4 flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Equipment List</h1>
+                <div className='flex items-center'>
+                    <Link href='/'>
+                        <ChevronLeft />
+                    </Link>
+
+                    <h1 className="text-2xl font-bold">Equipment List</h1>
+                </div>
                 <div className='items-center space-x-4'>
                     <Button variant={'outline'} onClick={expandAll}>Expand All</Button>
                     <Button variant={'secondary'} onClick={collapseAll}>Collapse All</Button>
