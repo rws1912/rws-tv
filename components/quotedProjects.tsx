@@ -129,9 +129,9 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef, projectsRowRe
   }
 
   const getRowColor = (daysLeft: number) => {
-    if (daysLeft >= 1 && daysLeft <= 10) return 'bg-red-400';
-    if (daysLeft >= 11 && daysLeft <= 20) return 'bg-yellow-400';
-    return 'bg-green-400';
+    if (daysLeft >= 1 && daysLeft <= 10) return 'bg-[#f5c0ba]';  // Light red
+    if (daysLeft >= 11 && daysLeft <= 20) return 'bg-[#f5eeba]'; // Light yellow
+    return 'bg-[#c4f5ba]'; // Light green
   };
 
   return (
@@ -185,7 +185,7 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef, projectsRowRe
                       updateProject(project.id, 'quotationRef', e.target.value);
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    className="bg-transparent"
+                    className="bg-transparent border-none hover:bg-gray-100 transition-colors"
                   />
                 </TableCell>
                 <TableCell>
@@ -196,7 +196,7 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef, projectsRowRe
                       updateProject(project.id, 'name', e.target.value);
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    className="bg-transparent"
+                    className="bg-transparent border-none hover:bg-gray-100 transition-colors"
                   />
                 </TableCell>
                 <TableCell>
@@ -207,7 +207,7 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef, projectsRowRe
                       updateProject(project.id, 'location', e.target.value);
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    className="bg-transparent"
+                    className="bg-transparent border-none hover:bg-gray-100 transition-colors"
                   />
                 </TableCell>
                 <TableCell>
@@ -215,11 +215,11 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef, projectsRowRe
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        className="w-full justify-start text-left font-normal bg-transparent"
+                        className="w-full justify-start text-left font-normal bg-transparent border-none hover:bg-gray-100 transition-colors"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {format(project.closingDate, "yyyy-MM-dd")}
+                        <p className='font-semibold'>{format(project.closingDate, "yyyy-MM-dd")}</p>
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" onClick={(e) => e.stopPropagation()}>
@@ -237,7 +237,7 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef, projectsRowRe
                     value={project.closingTime}
                     onValueChange={(value) => updateProject(project.id, 'closingTime', value)}
                   >
-                    <SelectTrigger className="bg-transparent" onClick={(e) => e.stopPropagation()}>
+                    <SelectTrigger className="bg-transparent border-none hover:bg-gray-100 transition-colors" onClick={(e) => e.stopPropagation()}>
                       <SelectValue>{project.closingTime}</SelectValue>
                     </SelectTrigger>
                     <SelectContent onClick={(e) => e.stopPropagation()}>
