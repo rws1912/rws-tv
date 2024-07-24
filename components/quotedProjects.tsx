@@ -129,7 +129,7 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef, projectsRowRe
   }
 
   const getRowColor = (daysLeft: number) => {
-    if (daysLeft >= 1 && daysLeft <= 10) return 'bg-red-500';
+    if (daysLeft >= 1 && daysLeft <= 10) return 'bg-red-400';
     if (daysLeft >= 11 && daysLeft <= 20) return 'bg-yellow-400';
     return 'bg-green-400';
   };

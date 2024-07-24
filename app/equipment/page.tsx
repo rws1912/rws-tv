@@ -41,10 +41,7 @@ const useDebounce = (callback: Function, delay: number) => {
 };
 
 const InventoryTable = () => {
-    const [items, setItems] = useState<Item[]>([
-        // { id: '1', label: 'Item 1', type: 'Type A', model: 'Model X', description: 'Description for Item 1', location: 'Location A' },
-        // { id: '2', label: 'Item 2', type: 'Type B', model: 'Model Y', description: 'Description for Item 2', location: 'Location B' },
-    ]);
+    const [items, setItems] = useState<Item[]>([]);
 
     const isLocalUpdateRef = useRef<boolean>(false);
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
@@ -283,7 +280,7 @@ const InventoryTable = () => {
         const allTypes = Object.keys(groupedItems);
         setExpandedGroups(new Set(allTypes));
     }
-    
+
     const collapseAll = () => {
         setExpandedGroups(new Set());
     }
@@ -292,28 +289,36 @@ const InventoryTable = () => {
     const renderGroupHeader = (type: string, count: number) => (
         <TableRow
             key={`header-${type}`}
-            className="bg-gray-100"
+            className="bg-gray-100 w-full"
         >
             <TableCell
                 colSpan={5}
-                className="font-bold cursor-pointer"
-                onClick={() => toggleGroup(type)}
+                className="py-2 px-4"
             >
-                {expandedGroups.has(type) ? <ChevronDown className="inline mr-2" /> : <ChevronRight className="inline mr-2" />}
-                {type} ({count})
-            </TableCell>
-            <TableCell className="text-right">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddNewItem(type);
-                    }}
-                >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add New
-                </Button>
+                <div className="flex justify-between items-center w-full">
+                    <div
+                        className="font-bold cursor-pointer flex items-center"
+                        onClick={() => toggleGroup(type)}
+                    >
+                        {expandedGroups.has(type) ? (
+                            <ChevronDown className="h-4 w-4 mr-2" />
+                        ) : (
+                            <ChevronRight className="h-4 w-4 mr-2" />
+                        )}
+                        <span>{type} ({count})</span>
+                    </div>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddNewItem(type);
+                        }}
+                    >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add New
+                    </Button>
+                </div>
             </TableCell>
         </TableRow>
     );
@@ -351,29 +356,27 @@ const InventoryTable = () => {
                     </Dialog>
                 </div>
             </div>
-            <Table>
-                <TableHeader>
-                    <TableRow className=''>
-                        <TableHead className="w-1/12">Label</TableHead>
-                        {/* <TableHead className="w-1/6">Type</TableHead> */}
-                        <TableHead className="w-3/12">Model</TableHead>
-                        <TableHead className="w-6/12">Description</TableHead>
-                        <TableHead className="w-1/6">Location</TableHead>
-                        <TableHead className="max-w-fit text-right">Actions</TableHead>
+            <Table className="w-full">
+                <TableHeader className='sticky'>
+                    <TableRow>
+                        <TableHead className="w-[10%]">Label</TableHead>
+                        <TableHead className="w-[25%]">Model</TableHead>
+                        <TableHead className="w-[30%]">Description</TableHead>
+                        <TableHead className="w-[30%]">Location</TableHead>
+                        <TableHead className="w-[5%] text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {Object.entries(groupedItems).map(([type, groupItems]) => (
-                        <>
+                        <React.Fragment key={type}>
                             {renderGroupHeader(type, groupItems.length)}
                             {expandedGroups.has(type) && groupItems.map((item) => (
                                 <TableRow key={item.id}>
-                                    <TableCell className="p-0">{renderCell(item, 'label')}</TableCell>
-                                    {/* <TableCell className="p-0">{renderCell(item, 'type')}</TableCell> */}
-                                    <TableCell className="p-0">{renderCell(item, 'model')}</TableCell>
-                                    <TableCell className="p-0">{renderCell(item, 'description')}</TableCell>
-                                    <TableCell className="p-0">{renderCell(item, 'location')}</TableCell>
-                                    <TableCell className='text-right'>
+                                    <TableCell>{renderCell(item, 'label')}</TableCell>
+                                    <TableCell>{renderCell(item, 'model')}</TableCell>
+                                    <TableCell>{renderCell(item, 'description')}</TableCell>
+                                    <TableCell>{renderCell(item, 'location')}</TableCell>
+                                    <TableCell className="flex justify-end">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button variant="ghost" size="sm">
@@ -394,7 +397,7 @@ const InventoryTable = () => {
                                     </TableCell>
                                 </TableRow>
                             ))}
-                        </>
+                        </React.Fragment>
                     ))}
                 </TableBody>
             </Table>
