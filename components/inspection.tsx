@@ -12,6 +12,7 @@ interface TableData {
   columns: string[];
 }
 
+
 interface Section {
   id: string;
   header: string;
