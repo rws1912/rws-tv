@@ -12,6 +12,8 @@ import { CalendarIcon } from "lucide-react";
 import { PlusCircle } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient'
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { Printer } from 'lucide-react';
+import print from '@/lib/print';
 
 
 const useDebounce = (callback: Function, delay: number) => {
@@ -36,7 +38,6 @@ interface Project {
   location: string;
   closingDate: Date;
   closingTime: string;
-
 }
 
 interface Props {
@@ -134,11 +135,91 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef, projectsRowRe
     return 'bg-[#c4f5ba]'; // Light green
   };
 
+  const setProjectsPrint = () => {
+    let htmlCode = `
+        <html>
+        <head>
+            <style>
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    margin-bottom: 20px;
+                }
+                th, td {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                }
+                th {
+                    background-color: #f2f2f2;
+                }
+                h2 {
+                    margin-top: 20px;
+                }
+                .red-row {
+                    background-color: #FFCCCB;
+                }
+                .yellow-row {
+                    background-color: #FFFFA7;
+                }
+                .green-row {
+                    background-color: #90EE90;
+                }
+            </style>
+        </head>
+        <body>
+            <h2>Quoted Projects</h2>
+            <table>
+                <tr>
+                    <th>Name of Project</th>
+                    <th>Location</th>
+                    <th>Closing Date</th>
+                    <th>Closing Time</th>
+                    <th>Days Left</th>
+                </tr>
+    `;
+
+    sortedProjects.forEach(project => {
+        const daysLeft = getDaysLeft(project.closingDate);
+        let rowClass = '';
+
+        if (daysLeft >= 0 && daysLeft <= 10) {
+            rowClass = 'red-row';
+        } else if (daysLeft >= 11 && daysLeft <= 20) {
+            rowClass = 'yellow-row';
+        } else {
+            rowClass = 'green-row';
+        }
+
+        const formattedDate = project.closingDate.toLocaleDateString();
+
+        htmlCode += `
+            <tr class="${rowClass}">
+                <td>${project.name}</td>
+                <td>${project.location}</td>
+                <td>${formattedDate}</td>
+                <td>${project.closingTime}</td>
+                <td>${daysLeft}</td>
+            </tr>
+        `;
+    });
+
+    htmlCode += `
+            </table>
+        </body>
+        </html>
+    `;
+
+    print(htmlCode);
+};
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead></TableHead>
+          <TableHead>                   
+             <Printer className="h-8 w-8 mr-2 hover:opacity-50 transition-opacity duration-300" onClick={setProjectsPrint} />
+          </TableHead>
           <TableHead>Quotation Ref</TableHead>
           <TableHead>Name of Project</TableHead>
           <TableHead>Location</TableHead>
