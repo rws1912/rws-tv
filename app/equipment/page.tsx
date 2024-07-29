@@ -12,7 +12,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronLeft, Printer } from 'lucide-react';
 import { Dialog } from '@radix-ui/react-dialog';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Link from 'next/link';
@@ -23,6 +23,7 @@ import {
     ContextMenuItem,
     ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import print from '@/lib/print';
 
 
 
@@ -793,7 +794,76 @@ const InventoryTable = () => {
         }
     };
 
-    
+    const setEquipmentPrint = () => {
+        let htmlCode = `
+            <html>
+            <head>
+                <style>
+                    table {
+                        border-collapse: collapse;
+                        width: 100%;
+                        margin-bottom: 20px;
+                    }
+                    th, td {
+                        border: 1px solid #ddd;
+                        padding: 8px;
+                        text-align: left;
+                    }
+                    th {
+                        background-color: #f2f2f2;
+                    }
+                    h2 {
+                        margin-top: 20px;
+                    }
+                </style>
+            </head>
+            <body>
+        `;
+
+        for (const [header, equipments] of Object.entries(groupedEquipments)) {
+            htmlCode += `<h2>${header}</h2>`;
+
+            if (equipments.length > 0) {
+                // Extract column names from the first equipment's cells
+                const columnNames = equipments[0].cells.map(cell => cell.name);
+
+                htmlCode += `
+                    <table>
+                        <tr>
+                            ${columnNames.map(name => `<th>${name}</th>`).join('')}
+                        </tr>
+                `;
+
+                // Sort cells by date_added for consistent column order
+                const sortedEquipments = equipments.map(equipment => ({
+                    ...equipment,
+                    cells: equipment.cells.sort((a, b) => new Date(a.date_added).getTime() - new Date(b.date_added).getTime())
+                }));
+
+                for (const equipment of sortedEquipments) {
+                    htmlCode += '<tr>';
+
+                    for (const columnName of columnNames) {
+                        const cell = equipment.cells.find(cell => cell.name === columnName);
+                        htmlCode += `<td>${cell ? cell.value : ''}</td>`;
+                    }
+
+                    htmlCode += '</tr>';
+                }
+
+                htmlCode += '</table>';
+            }
+        }
+
+        htmlCode += `
+            </body>
+            </html>
+        `;
+
+        print(htmlCode);
+    };
+
+
 
     const expandAll = () => {
         const allTypes = Object.keys(groupedEquipments);
@@ -854,11 +924,12 @@ const InventoryTable = () => {
     return (
         <div className="h-screen w-screen overflow-auto p-4">
             <div className="mb-4 flex justify-between items-center">
-                <div className='flex items-center'>
+                <div className='flex items-center space-x-2'>
                     <Link href='/'>
                         <ChevronLeft />
                     </Link>
                     <h1 className="text-2xl font-bold">Equipment List</h1>
+                    <Printer className="h-8 w-8 mr-2 hover:opacity-50 transition-opacity duration-300" onClick={setEquipmentPrint} />
                 </div>
                 <div className='items-center space-x-4'>
                     <Button variant={'outline'} onClick={expandAll}>Expand All</Button>

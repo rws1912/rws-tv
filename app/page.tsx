@@ -5,7 +5,6 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/componen
 import {ImperativePanelHandle} from 'react-resizable-panels';
 import QuotedProjects from "@/components/quotedProjects";
 import Construction from "@/components/construction";
-import Inspection from "@/components/inspection";
 import { supabase } from '../lib/supabaseClient'
 import { Menu, X } from 'lucide-react'; // Assuming you're using Lucide icons
 
@@ -409,7 +408,7 @@ export default function Home() {
           </section>
           <section id="inspection" className="p-4">
             <h2 className="text-xl font-bold mb-4">Inspection</h2>
-            <Construction styling={'bg-blue-200'} type={"inspection"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile}/>
+            <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile}/>
           </section>
         </div>
       </div>
@@ -433,7 +432,7 @@ export default function Home() {
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={40} className="!overflow-y-auto">
-          <Construction styling={'bg-blue-200'} type={"inspection"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={false}/>
+          <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={false}/>
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Minus, Trash2, Construction as ConstructionIcon, Printer, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
+import print from '@/lib/print';
 
 interface TableData {
   id: number;
@@ -226,7 +227,7 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
     `;
 
     // Open the HTML content in a new tab and print it
-    openHtmlInNewTab(htmlContent);
+    print(htmlContent);
   }
 
   const printSection = (sectionId: number) => {
@@ -273,15 +274,10 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
     `;
 
     // Open the HTML content in a new tab and print it
-    openHtmlInNewTab(htmlContent);
+    print(htmlContent);
   }
 
-  const openHtmlInNewTab = (htmlContent: string) => {
-    const newWindow = window.open('');
-    newWindow!.document.write(htmlContent);
-    newWindow!.print();
-    newWindow!.close();
-  };
+
 
   const deleteSection = async (sectionId: number) => {
     try {
