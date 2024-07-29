@@ -79,57 +79,21 @@ const InventoryTable = () => {
     const [newTypeDialogOpen, setNewTypeDialogOpen] = useState(false);
     const [newTypeName, setNewTypeName] = useState('');
 
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
-        // const fetchEquipments = async () => {
-        //     const { data, error } = await supabase
-        //         .from('EquipmentList')
-        //         .select();
+        const checkIfMobile = () => {
+            setIsMobile(window.innerWidth < 768); // Adjust this breakpoint as needed
+        };
 
-        //     if (error) {
-        //         console.error('Error fetching equipments');
-        //     } else {
-        //         data.sort((a, b) => a.type === b.type ? 0 : -1)
-        //         setItems(data);
-        //     }
-        // }
+        checkIfMobile();
+        window.addEventListener('resize', checkIfMobile);
 
-        // const fetchCombinedEquipments = async () => {
-        //     const { data, error } = await supabase
-        //         .from('equipmentRows')
-        //         .select(`
-        //         id,
-        //         type,
-        //         cells:equipmentCells (
-        //             id,
-        //             column_id,
-        //             value,
-        //             row_id,
-        //             column:equipmentColumns (id, column_name)
-        //         )
-        //     `);
+        return () => window.removeEventListener('resize', checkIfMobile);
+    }, []);
 
-        //     if (error) {
-        //         console.error('Error fetching equipments:', error);
-        //         return;
-        //     }
 
-        //     if (data) {
-        //         const processedData: ProcessedEquipmentRow[] = data.map((object: any) => ({
-        //             id: object.id,
-        //             type: object.type,
-        //             cells: object.cells.map((cell: any) => ({
-        //                 id: cell.id,
-        //                 name: cell.column.column_name,
-        //                 value: cell.value,
-        //                 column_id: cell.column_id,
-        //                 row_id: cell.row_id
-        //             }))
-        //         }));
-
-        //         setEquipments(processedData);
-        //     }
-        // }
+    useEffect(() => {
         const fetchCombinedEquipments = async () => {
             // Fetch equipment data
             const { data, error } = await supabase
@@ -181,30 +145,6 @@ const InventoryTable = () => {
                 setEquipments(processedData);
             }
         }
-
-
-
-        // const subscribeToEquipments = async () => {
-        //     const channel = supabase.channel('equipments')
-        //         .on('postgres_changes', {
-        //             event: '*',
-        //             schema: 'public',
-        //             table: 'EquipmentList'
-        //         }, () => {
-        //             console.log("Updated the database")
-        //             if (!isLocalUpdateRef.current) {
-        //                 fetchEquipments();
-        //             } else {
-        //                 console.log("Local change for equipments");
-        //             }
-
-        //             isLocalUpdateRef.current = false;
-        //         }).subscribe();
-
-        //     return () => {
-        //         supabase.removeChannel(channel);
-        //     }
-        // }
 
         const subscribeToCombinedEquipments = async () => {
             const channel = supabase.channel('equipment!')
@@ -967,30 +907,42 @@ const InventoryTable = () => {
                     {expandedGroups.has(type) && (
                         <Table className="w-full mb-4">
                             <TableHeader>
-                                <TableRow className=''>
-                                    {groupEquipments.length > 0 && groupEquipments[0].cells.map((cell) => (
-                                        <TableHead className="" key={cell.column_id}>
-                                            <ContextMenu>
-                                                <ContextMenuTrigger>
-                                                    {renderColumnCell(groupEquipments[0].id, cell)}
-                                                </ContextMenuTrigger>
-                                                <ContextMenuContent>
-                                                    <ContextMenuItem onClick={() => deleteColumn(cell.column_id)}>
-                                                        Delete Column
-                                                    </ContextMenuItem>
-                                                </ContextMenuContent>
-                                            </ContextMenu>
-                                        </TableHead>
-                                    ))}
+                                <TableRow>
+                                    {groupEquipments.length > 0 && groupEquipments[0].cells.map((cell, index) => {
+                                        const isFirstOrLast = index === 0 || index === groupEquipments[0].cells.length - 1;
+                                        if (!isMobile || isFirstOrLast) {
+                                            return (
+                                                <TableHead className="" key={cell.column_id}>
+                                                    <ContextMenu>
+                                                        <ContextMenuTrigger>
+                                                            {renderColumnCell(groupEquipments[0].id, cell)}
+                                                        </ContextMenuTrigger>
+                                                        <ContextMenuContent>
+                                                            <ContextMenuItem onClick={() => deleteColumn(cell.column_id)}>
+                                                                Delete Column
+                                                            </ContextMenuItem>
+                                                        </ContextMenuContent>
+                                                    </ContextMenu>
+                                                </TableHead>
+                                            );
+                                        }
+                                        return null;
+                                    })}
                                     <TableHead className='w-2'></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {groupEquipments.map((equipment) => (
                                     <TableRow key={equipment.id}>
-                                        {equipment.cells.map((cell) => (
-                                            <TableCell key={cell.id}>{renderCell(equipment.id, cell)}</TableCell>
-                                        ))}
+                                        {equipment.cells.map((cell, index) => {
+                                            const isFirstOrLast = index === 0 || index === equipment.cells.length - 1;
+                                            if (!isMobile || isFirstOrLast) {
+                                                return (
+                                                    <TableCell key={cell.id}>{renderCell(equipment.id, cell)}</TableCell>
+                                                );
+                                            }
+                                            return null;
+                                        })}
                                         <TableCell className="text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
