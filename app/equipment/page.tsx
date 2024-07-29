@@ -12,11 +12,12 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, ChevronRight, ChevronLeft, Printer } from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronLeft, Printer, Eye } from 'lucide-react';
 import { Dialog } from '@radix-ui/react-dialog';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Link from 'next/link';
 import { useToast } from "@/components/ui/use-toast";
+import { Label } from '@/components/ui/label';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -998,13 +999,34 @@ const InventoryTable = () => {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent>
+                                                    <Dialog>
+                                                        <DialogTrigger asChild>
+                                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                                <Eye className="mr-2 h-4 w-4" />
+                                                                See contents
+                                                            </DropdownMenuItem>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="sm:max-w-[425px]">
+                                                            <DialogHeader>
+                                                                <DialogTitle>Equipment Details</DialogTitle>
+                                                            </DialogHeader>
+                                                            <div className="grid gap-4 py-4">
+                                                                {equipment.cells.map((cell) => (
+                                                                    <div key={cell.id} className="grid grid-cols-4 items-center gap-4">
+                                                                        <Label htmlFor={cell.id} className="text-right">
+                                                                            {cell.name}
+                                                                        </Label>
+                                                                        <div className="col-span-3">
+                                                                            <Input id={cell.id} value={cell.value} readOnly />
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </DialogContent>
+                                                    </Dialog>
                                                     <DropdownMenuItem onClick={() => deleteRow(equipment.id)}>
                                                         <Trash className="mr-2 h-4 w-4" />
                                                         Delete
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => insertRowBelow(equipment.type)}>
-                                                        <Plus className="mr-2 h-4 w-4" />
-                                                        Insert Below
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
