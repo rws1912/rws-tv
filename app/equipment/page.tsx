@@ -36,22 +36,6 @@ interface Item {
     location: string;
 }
 
-interface EquipmentCell {
-    id: string;
-    column_id: string;
-    value: string;
-    column: {
-        id: string;
-        column_name: string;
-    };
-}
-
-interface EquipmentRow {
-    id: string;
-    type: string;
-    cells: EquipmentCell[];
-}
-
 interface Cell {
     column_id: string;
     date_added: Date;
@@ -83,7 +67,7 @@ const useDebounce = (callback: Function, delay: number) => {
 };
 
 const InventoryTable = () => {
-    const [items, setItems] = useState<Item[]>([]);
+    // const [items, setItems] = useState<Item[]>([]);
     const [equipments, setEquipments] = useState<ProcessedEquipmentRow[]>([]);
     const { toast } = useToast()
 
@@ -95,18 +79,18 @@ const InventoryTable = () => {
 
 
     useEffect(() => {
-        const fetchEquipments = async () => {
-            const { data, error } = await supabase
-                .from('EquipmentList')
-                .select();
+        // const fetchEquipments = async () => {
+        //     const { data, error } = await supabase
+        //         .from('EquipmentList')
+        //         .select();
 
-            if (error) {
-                console.error('Error fetching equipments');
-            } else {
-                data.sort((a, b) => a.type === b.type ? 0 : -1)
-                setItems(data);
-            }
-        }
+        //     if (error) {
+        //         console.error('Error fetching equipments');
+        //     } else {
+        //         data.sort((a, b) => a.type === b.type ? 0 : -1)
+        //         setItems(data);
+        //     }
+        // }
 
         // const fetchCombinedEquipments = async () => {
         //     const { data, error } = await supabase
@@ -176,9 +160,6 @@ const InventoryTable = () => {
                         date_added: cell.column.date_added
                     }));
 
-                    // Find the date_added cell
-                    const dateAddedCell = cells.find(cell => cell.name === 'date_added');
-
                     return {
                         id: object.id,
                         type: object.type,
@@ -201,27 +182,27 @@ const InventoryTable = () => {
 
 
 
-        const subscribeToEquipments = async () => {
-            const channel = supabase.channel('equipments')
-                .on('postgres_changes', {
-                    event: '*',
-                    schema: 'public',
-                    table: 'EquipmentList'
-                }, () => {
-                    console.log("Updated the database")
-                    if (!isLocalUpdateRef.current) {
-                        fetchEquipments();
-                    } else {
-                        console.log("Local change for equipments");
-                    }
+        // const subscribeToEquipments = async () => {
+        //     const channel = supabase.channel('equipments')
+        //         .on('postgres_changes', {
+        //             event: '*',
+        //             schema: 'public',
+        //             table: 'EquipmentList'
+        //         }, () => {
+        //             console.log("Updated the database")
+        //             if (!isLocalUpdateRef.current) {
+        //                 fetchEquipments();
+        //             } else {
+        //                 console.log("Local change for equipments");
+        //             }
 
-                    isLocalUpdateRef.current = false;
-                }).subscribe();
+        //             isLocalUpdateRef.current = false;
+        //         }).subscribe();
 
-            return () => {
-                supabase.removeChannel(channel);
-            }
-        }
+        //     return () => {
+        //         supabase.removeChannel(channel);
+        //     }
+        // }
 
         const subscribeToCombinedEquipments = async () => {
             const channel = supabase.channel('equipment!')
@@ -503,7 +484,7 @@ const InventoryTable = () => {
     }
 
     const insertColumn = async (type: string) => {
-        isLocalUpdateRef.current = true;
+        // isLocalUpdateRef.current = true;
         const rowEquipments = equipments.filter(equipment => equipment.type === type);
 
         try {
@@ -533,27 +514,27 @@ const InventoryTable = () => {
             console.log("New cells created:", newCells);
 
             // Update the local state equipments
-            setEquipments(prevEquipments =>
-                prevEquipments.map(equipment => {
-                    if (equipment.type === type) {
-                        const newCell = newCells.find(cell => cell.row_id === equipment.id);
-                        return {
-                            ...equipment,
-                            cells: [
-                                ...equipment.cells,
-                                {
-                                    id: newCell.id,
-                                    column_id: newColumn.id,
-                                    name: newColumn.column_name,
-                                    row_id: equipment.id,
-                                    value: ''
-                                }
-                            ]
-                        };
-                    }
-                    return equipment;
-                })
-            );
+            // setEquipments(prevEquipments: any =>
+            //     prevEquipments.map(equipment => {
+            //         if (equipment.type === type) {
+            //             const newCell = newCells.find(cell => cell.row_id === equipment.id);
+            //             return {
+            //                 ...equipment,
+            //                 cells: [
+            //                     ...equipment.cells,
+            //                     {
+            //                         id: newCell.id,
+            //                         column_id: newColumn.id,
+            //                         name: newColumn.column_name,
+            //                         row_id: equipment.id,
+            //                         value: ''
+            //                     }
+            //                 ]
+            //             };
+            //         }
+            //         return equipment;
+            //     })
+            // );
 
             console.log("Local state updated");
 
@@ -680,16 +661,16 @@ const InventoryTable = () => {
         }
     };
 
-    const groupedItems = useMemo(() => {
-        const groups: { [key: string]: Item[] } = {};
-        items.forEach(item => {
-            if (!groups[item.type]) {
-                groups[item.type] = [];
-            }
-            groups[item.type].push(item);
-        });
-        return groups;
-    }, [items]);
+    // const groupedItems = useMemo(() => {
+    //     const groups: { [key: string]: Item[] } = {};
+    //     items.forEach(item => {
+    //         if (!groups[item.type]) {
+    //             groups[item.type] = [];
+    //         }
+    //         groups[item.type].push(item);
+    //     });
+    //     return groups;
+    // }, [items]);
 
     const groupedEquipments = useMemo(() => {
         const groups: { [key: string]: ProcessedEquipmentRow[] } = {};
