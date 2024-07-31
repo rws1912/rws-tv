@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Minus, Trash2, Construction as ConstructionIcon, Printer, ChevronDown, ChevronUp, HardHat } from 'lucide-react';
+import { Plus, Minus, Trash2, Construction as ConstructionIcon, Printer, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import print from '@/lib/print';
