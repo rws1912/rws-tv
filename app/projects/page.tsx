@@ -54,7 +54,7 @@ export default function Projects() {
 
     useEffect(() => {
         const getProjectsFromIntranet = async () => {
-            const token = 'tQ0MGggkUq1dMTGkbqtJgFH1uouTvCvl8MvRtCdH';
+            const token = process.env.NEXT_PUBLIC_INTRANET_KEY;
             const baseUrl = 'https://rws.ca'
             const url = `${baseUrl}/api/internal/projects/holdbacks/`;
 
