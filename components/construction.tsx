@@ -4,7 +4,7 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Minus, Trash2, Construction as ConstructionIcon, Printer, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Minus, Trash2, Construction as ConstructionIcon, Printer, ChevronDown, ChevronUp, HardHat } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import print from '@/lib/print';
@@ -72,7 +72,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
     }));
   };
 
-  console.log("isMobile", isMobile);
 
   // const addSection = () => {
   // const newSection: Section = {
@@ -664,22 +663,32 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
 
   return (
     <>
-      <div className='mb-2 mt-2 sticky'>
-        <Button onClick={addSection}>
-          <Plus className="h-4 w-4 mr-2" /> Add New Section
-        </Button>
+      <div className='mb-2 mt-2 flex w-full justify-between'>
+        <div>
+          <Button onClick={addSection}>
+            <Plus className="h-4 w-4 mr-2" /> Add New Section
+          </Button>
 
-        <Button onClick={printWholeSection} variant='outline' className="ml-4 mr-4">
-          <Printer className="h-4 w-4 mr-2" /> Print {type}
-        </Button>
+          <Button onClick={printWholeSection} variant='outline' className="ml-4 mr-4">
+            <Printer className="h-4 w-4 mr-2" /> Print {type}
+          </Button>
 
-        {type === 'construction' &&
-          <Link href='/equipment'>
-            <Button className="mt-2" variant={'secondary'}>
-              <ConstructionIcon className="h-4 w-4 mr-2" /> Equipment List
+          {type === 'construction' &&
+            <Link href='/equipment'>
+              <Button className="mt-2" variant={'secondary'}>
+                <ConstructionIcon className="h-4 w-4 mr-2" /> Equipment List
+              </Button>
+            </Link>
+          }
+        </div>
+        {type !== 'construction' &&
+          <Link href='/projects'>
+            <Button variant='outline' className="ml-4 mr-4">
+              Projects
             </Button>
           </Link>
         }
+
       </div>
       <div className="space-y-4">
         {sections.map((section) => (
@@ -772,18 +781,18 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
                 ))}
               </TableBody>
             </Table>
-            {!isMobile && 
-            <div className="flex justify-end space-x-1 p-2 bg-gray-50">
-              <Button size="sm" variant="outline" onClick={() => addRow(section.id)}>
-                <Plus className="h-3 w-3 mr-1" /> Row
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => addColumn(section.id)} disabled={section.table.rows[0].length >= 3}>
-                <Plus className="h-3 w-3 mr-1" /> Column
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => deleteColumn(section.id)} disabled={section.table.rows[0].length <= 1}>
-                <Minus className="h-3 w-3 mr-1" /> Column
-              </Button>
-            </div>}
+            {!isMobile &&
+              <div className="flex justify-end space-x-1 p-2 bg-gray-50">
+                <Button size="sm" variant="outline" onClick={() => addRow(section.id)}>
+                  <Plus className="h-3 w-3 mr-1" /> Row
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => addColumn(section.id)} disabled={section.table.rows[0].length >= 3}>
+                  <Plus className="h-3 w-3 mr-1" /> Column
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => deleteColumn(section.id)} disabled={section.table.rows[0].length <= 1}>
+                  <Minus className="h-3 w-3 mr-1" /> Column
+                </Button>
+              </div>}
           </div>
         ))}
 
