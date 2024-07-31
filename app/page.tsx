@@ -389,7 +389,6 @@ export default function Home() {
   if (isMobile) {
     return (
       <div className="h-screen w-screen flex flex-col">
-        {/* <button onClick={resizePanel}>Resize</button> */}
         <header className="bg-gray-800 text-white p-4 flex justify-between items-center">
           <h1>Project Management</h1>
           <button onClick={() => setMenuOpen(true)}>
@@ -415,7 +414,6 @@ export default function Home() {
     );
   }
 
-  // Desktop layout with resizable panels
   return (
     <div className="h-screen w-screen">
       <ResizablePanelGroup direction="horizontal" className="h-full">
