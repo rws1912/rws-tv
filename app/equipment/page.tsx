@@ -71,7 +71,6 @@ const useDebounce = (callback: Function, delay: number) => {
 const InventoryTable = () => {
     // const [items, setItems] = useState<Item[]>([]);
     const [equipments, setEquipments] = useState<ProcessedEquipmentRow[]>([]);
-    const [isMobile, setIsMobile] = useState(false);
     const { toast } = useToast()
 
     useEffect(() => {
