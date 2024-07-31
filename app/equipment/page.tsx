@@ -71,7 +71,20 @@ const useDebounce = (callback: Function, delay: number) => {
 const InventoryTable = () => {
     // const [items, setItems] = useState<Item[]>([]);
     const [equipments, setEquipments] = useState<ProcessedEquipmentRow[]>([]);
+    const [isMobile, setIsMobile] = useState(false);
     const { toast } = useToast()
+
+    useEffect(() => {
+        const checkIfMobile = () => {
+            setIsMobile(window.innerWidth < 768); // Adjust this breakpoint as needed
+        };
+
+        checkIfMobile();
+        window.addEventListener('resize', checkIfMobile);
+
+        return () => window.removeEventListener('resize', checkIfMobile);
+    }, []);
+
 
 
     const isLocalUpdateRef = useRef<boolean>(false);
@@ -907,9 +920,12 @@ const InventoryTable = () => {
                     {expandedGroups.has(type) && (
                         <Table className="w-full mb-4">
                             <TableHeader>
-                                <TableRow>
-                                    {groupEquipments.length > 0 && groupEquipments[0].cells.map((cell, index) => {
-                                        const isFirstOrLast = index === 0 || index === groupEquipments[0].cells.length - 1;
+                                <TableRow className=''>
+                                    {groupEquipments.length > 0 && groupEquipments[0].cells.map((cell, index, array) => {
+                                        // Determine if the current cell is the first or last column
+                                        const isFirstOrLast = index === 0 || index === array.length - 1;
+
+                                        // Conditionally render the cell based on the isMobile state and if it's the first or last column
                                         if (!isMobile || isFirstOrLast) {
                                             return (
                                                 <TableHead className="" key={cell.column_id}>
@@ -934,8 +950,8 @@ const InventoryTable = () => {
                             <TableBody>
                                 {groupEquipments.map((equipment) => (
                                     <TableRow key={equipment.id}>
-                                        {equipment.cells.map((cell, index) => {
-                                            const isFirstOrLast = index === 0 || index === equipment.cells.length - 1;
+                                        {equipment.cells.map((cell, index, array) => {
+                                            const isFirstOrLast = index === 0 || index === array.length - 1;
                                             if (!isMobile || isFirstOrLast) {
                                                 return (
                                                     <TableCell key={cell.id}>{renderCell(equipment.id, cell)}</TableCell>
