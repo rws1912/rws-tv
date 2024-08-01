@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect,useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable"
-import {ImperativePanelHandle} from 'react-resizable-panels';
+import { ImperativePanelHandle } from 'react-resizable-panels';
 import QuotedProjects from "@/components/quotedProjects";
 import Construction from "@/components/construction";
 import { supabase } from '../lib/supabaseClient'
-import { Menu, X } from 'lucide-react'; // Assuming you're using Lucide icons
+import { Menu, X, Eye } from 'lucide-react';
+import RotatePhone from "@/components/rotatePhoneAnimation";
 
 
 // const QuotedProjects = () => <div className="h-full bg-gray-100 p-4">QuotedProjects Component</div>;
@@ -38,6 +39,10 @@ interface Project {
 export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sectionView, setSectionView] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [wasLandscape, setWasLandscape] = useState(false);
+
 
   const isLocalUpdateRef = useRef<boolean>(false);
 
@@ -46,7 +51,7 @@ export default function Home() {
 
   useEffect(() => {
     const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768); // Adjust this breakpoint as needed
+      setIsMobile(window.innerWidth < 768);
     };
 
     checkIfMobile();
@@ -54,6 +59,36 @@ export default function Home() {
 
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
+
+  useEffect(() => {
+    const checkOrientation = () => {
+      const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+
+      if (isPortrait) {
+        if (wasLandscape) {
+          setSectionView(null);
+        }
+        setIsVisible(true);
+        setWasLandscape(false);
+      } else {
+        setIsVisible(false);
+        setWasLandscape(true);
+      }
+    };
+
+    // Check orientation immediately
+    checkOrientation();
+
+    // Add event listener for orientation changes
+    const mediaQuery = window.matchMedia("(orientation: portrait)");
+    mediaQuery.addListener(checkOrientation);
+
+    // Cleanup function
+    return () => {
+      mediaQuery.removeListener(checkOrientation);
+    };
+  }, [wasLandscape, setSectionView]);
+
 
   const handleNavigation = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
@@ -79,46 +114,9 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([
   ]);
 
-  const [construction, setConstruction] = useState<Section[]>([
-    // {
-    //   id: '1',
-    //   header: "Approved Drawing",
-    //   table: {
-    //     id: '1',
-    //     rows: [
-    //       ['first row', '123'],
-    //       ['second row', '456']
-    //     ],
-    //     columns: ['Id', 'Date'],
-    //     expandedRows: [false, false]
-    //   },
-    // },
-    // {
-    //   id: '2',
-    //   header: 'Shop Fabrication',
-    //   table: {
-    //     id: '2',
-    //     rows: [['']],
-    //     columns: ['Column 1'],
-    //     expandedRows: [false]
-    //   }
-    // }
-  ]);
+  const [construction, setConstruction] = useState<Section[]>([]);
 
-  const [inspection, setInspection] = useState<Section[]>([
-    // {
-    //   id: '1',
-    //   header: "Shopwork",
-    //   table: {
-    //     id: '1',
-    //     rows: [
-    //       ['JOBSITE', '182A9851', 'FREE REPAIR EDL240S'],
-    //     ],
-    //     columns: ['Company', 'Job Number', 'Description'],
-    //     expandedRows: [false]
-    //   },
-    // },
-  ]);
+  const [inspection, setInspection] = useState<Section[]>([]);
 
   // For construction
   const fetchConstruction = () => fetchCategoryData('construction', setConstruction);
@@ -134,7 +132,7 @@ export default function Home() {
         .from('Categories')
         .select('*')
         .eq('type', type)
-        .order('date_added', {ascending: true})
+        .order('date_added', { ascending: true })
 
       if (categoriesError) throw categoriesError
 
@@ -212,22 +210,22 @@ export default function Home() {
         const { data, error } = await supabase
           .from('QuotedProjects')
           .select();
-  
+
         if (error) {
           throw error;
         }
-  
+
         const currentDate = new Date();
         const filteredProjects = [];
-  
+
         for (const project of data) {
           const closingDate = project.closingDate ? new Date(project.closingDate + 'T00:00:00') : null;
           const closingTime = new Date(project.closingDate + 'T' + project.closingTime);
-  
+
           if (closingDate && (closingDate > currentDate || (closingDate.toDateString() === currentDate.toDateString() && closingTime > currentDate))) {
             filteredProjects.push({
               ...project,
-              closingDate: closingDate, 
+              closingDate: closingDate,
             });
           } else {
             // Delete project from database
@@ -235,13 +233,13 @@ export default function Home() {
               .from('QuotedProjects')
               .delete()
               .match({ id: project.id });
-  
+
             if (deleteError) {
               console.error('Error deleting project:', deleteError);
             }
           }
         }
-  
+
         setProjects(filteredProjects);
       } catch (error) {
         console.error('Error fetching or processing data:', error);
@@ -309,7 +307,7 @@ export default function Home() {
         } else {
           console.log("Local change");
         }
-        
+
         isLocalUpdateRef.current = false;
       }).subscribe()
 
@@ -317,25 +315,6 @@ export default function Home() {
         supabase.removeChannel(channel);
       }
     }
-    // const subscribeDatabase = (onUpdate: () => void): () => void => {
-    //   const channel = supabase.channel('quoted projects')
-    //   .on('postgres_changes', 
-    //     {
-    //       event: '*',
-    //       schema: 'public',
-    //       table: 'QuotedProjects'
-    //     }, 
-    //     (payload) => {
-    //       console.log('Change received!', payload);
-    //       onUpdate();
-    //     }
-    //   )
-
-    //   return () => {
-    //     supabase.removeChannel(channel);
-    //   }
-    // }
-
     fetchQuotedProjectsData();
     subscribeDatabase();
 
@@ -353,41 +332,23 @@ export default function Home() {
     });
   }, [])
 
-  const resizePanel = () => {
-    if (panelRef.current) {
-      if (projectsRowRef.current) {
-        console.log("Row Height", projectsRowRef.current.getBoundingClientRect());
-      }
+  const handleEyeClick = (section: string) => {
+    setSectionView(section);
+    setIsVisible(true);
+    // Alert.show('Please rotate your phone for a better experience.');
+  }
 
-      // Get the number of projects
-      const numberOfProjects = projects.length + 6;
-  
-      // Calculate the total height of all rows (56px per row)
-      const totalRowsHeight = numberOfProjects * 56;
-  
-      // Get the total height of the screen
-      const screenHeight = window.innerHeight;
-  
-      // Calculate the percentage of the screen height that the rows occupy
-      let percentage = (totalRowsHeight / screenHeight) * 100;
-  
-      // Round up to the nearest integer and ensure it doesn't exceed 100
-      percentage = Math.min(Math.ceil(percentage), 100);
-
-      console.log("Total Rows Height", totalRowsHeight);
-      console.log("Current screenHeight", screenHeight);
-
-      console.log("Panel resized is", percentage);
-  
-      // Resize the panel
-      panelRef.current.resize(percentage);
-    }
+  const handleBackClick = () => {
+    setSectionView(null);
   };
 
 
 
-  if (isMobile) {
+
+  if (isMobile && !sectionView) {
     return (
+
+
       <div className="h-screen w-screen flex flex-col">
         <header className="bg-gray-800 text-white p-4 flex justify-between items-center">
           <h1>Project Management</h1>
@@ -398,19 +359,51 @@ export default function Home() {
         {menuOpen && <MobileMenu />}
         <div className="flex-1 overflow-y-auto">
           <section id="projects" className="p-4">
-            <h2 className="text-xl font-bold mb-4">Projects</h2>
-            <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} projectsRowRef={projectsRowRef}/>
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold mb-4">Projects</h2>
+              <Eye onClick={() => handleEyeClick('projects')} />
+            </div>
+            <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} projectsRowRef={projectsRowRef} />
           </section>
           <section id="construction" className="p-4">
-            <h2 className="text-xl font-bold mb-4">Construction</h2>
-            <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile}/>
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold mb-4">Construction</h2>
+              <Eye onClick={() => handleEyeClick('construction')} />
+            </div>
+            <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile} />
           </section>
           <section id="inspection" className="p-4">
-            <h2 className="text-xl font-bold mb-4">Inspection</h2>
-            <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile}/>
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold mb-4">Inspection</h2>
+              <Eye onClick={() => handleEyeClick('inspection')} />
+            </div>
+            <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile} />
           </section>
         </div>
       </div>
+
+    );
+  }
+
+  if (sectionView) {
+    return (
+      <>
+        <RotatePhone isVisible={isVisible} setIsVisible={setIsVisible} />
+        <div className="h-screen w-screen">
+          <button onClick={handleBackClick}>Back to Mobile View</button>
+          <div className="h-full w-full">
+            {sectionView === 'projects' && (
+              <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} projectsRowRef={projectsRowRef} />
+            )}
+            {sectionView === 'construction' && (
+              <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={false} />
+            )}
+            {sectionView === 'inspection' && (
+              <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={false} />
+            )}
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -424,13 +417,13 @@ export default function Home() {
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={50} className="!overflow-y-auto" ref={panelRef}>
-              <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={false}/>
+              <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={false} />
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={40} className="!overflow-y-auto">
-          <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={false}/>
+          <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={false} />
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
