@@ -51,6 +51,8 @@ interface ProjectInfo {
 export default function Projects() {
     const [projects, setProjects] = useState<ProjectInfo[]>([]);
     const [seeProjectGrid, setSeeProjectGrid] = useState<boolean>(false);
+    const [searchKeyword, setSearchKeyword] = useState<string>('');
+    const [searchTrigger, setSearchTrigger] = useState<boolean>(false);
 
     useEffect(() => {
         const getProjectsFromIntranet = async () => {
@@ -93,64 +95,26 @@ export default function Projects() {
 
 
         getProjectsFromIntranet()
-    }, [])
+    }, []);
 
-    // const renderTable = (status: string, header: string) => {
-    //     const filteredProjects = projects.filter(project => project.status === status);
-
-    //     if (filteredProjects.length === 0) return null;
-
-    //     const headerColors: { [key: string]: string } = {
-    //         'Active': 'bg-blue-200',
-    //         'Completed - HB': 'bg-yellow-200',
-    //         'Completed - Maint HB': 'bg-green-200',
-    //         'Done': 'bg-red-200',
-    //     };
-
-    //     return (
-    //         <div key={status} className="mb-8">
-    //             <h2 className={`text-2xl font-bold mb-4 ${headerColors[status] || 'bg-gray-200'} p-2 rounded`}>
-    //                 {header}
-    //             </h2>
-    //             <div className="overflow-x-auto">
-    //                 <table className="min-w-full divide-y divide-gray-200">
-    //                     <thead className=" bg-gray-50">
-    //                         <tr>
-    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proj Ref</th>
-    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Number</th>
-    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contractor</th>
-    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Summary</th>
-    //                         </tr>
-    //                     </thead>
-    //                     <tbody className="bg-white divide-y divide-gray-200">
-    //                         {filteredProjects.map((project) => (
-    //                             <tr key={project.projSN}>
-    //                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{project.projSN}</td>
-    //                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.jobNum}</td>
-    //                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.name}</td>
-    //                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.contractor}</td>
-    //                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.summary}</td>
-    //                             </tr>
-    //                         ))}
-    //                     </tbody>
-    //                 </table>
-    //             </div>
-    //         </div>
-    //     );
-    // };
     const renderTable = (status: string, header: string) => {
-        const filteredProjects = projects.filter(project => project.status === status);
-    
+        const filteredProjects = projects.filter(project =>
+            project.status === status &&
+            (project.projSN.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+             project.jobNum.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+             project.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+             project.contractor.toLowerCase().includes(searchKeyword.toLowerCase()) 
+            )
+        );
         if (filteredProjects.length === 0) return null;
-    
+
         const headerColors: any = {
             'Active': 'bg-blue-200',
             'Completed - HB': 'bg-yellow-200',
             'Completed - Maint HB': 'bg-green-200',
             'Done': 'bg-red-200',
         };
-    
+
         return (
             <div key={status} className="mb-8">
                 <div className="sticky top-16 z-10">
@@ -187,7 +151,15 @@ export default function Projects() {
     };
 
     const renderProjectGrid = () => {
-        const sortedProjects = [...projects].sort((a, b) => a.projSN.localeCompare(b.projSN));
+        const filteredProjects = projects.filter(project =>
+            (project.projSN.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+             project.jobNum.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+             project.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+             project.contractor.toLowerCase().includes(searchKeyword.toLowerCase()) 
+            )
+        );
+        if (filteredProjects.length === 0) return null;        
+        const sortedProjects = [...filteredProjects].sort((a, b) => a.projSN.localeCompare(b.projSN));
 
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
@@ -225,21 +197,45 @@ export default function Projects() {
         );
     }
 
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        // Force a re-render
+        setSearchTrigger(prev => !prev);
+    }
+
+
     return (
         <>
             <div className="sticky top-0 z-20 bg-white w-full py-4 h-16">
-                <div className="relative w-full">
+                <div className="relative w-full flex items-center justify-between px-4">
                     <Link href="/">
-                        <button className="absolute left-0 flex items-center min-w-fit">
+                        <button className="flex items-center min-w-fit">
                             <ChevronLeft className="mr-2" />
                             Go Back
                         </button>
                     </Link>
-                    <div className="flex justify-center w-full">
-                        <Button variant='default' onClick={() => setSeeProjectGrid(!seeProjectGrid)}>
-                            {seeProjectGrid ? 'See Project List' : 'See Project Grid'}
-                        </Button>
+
+                    <div className="flex-grow mx-4">
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Search projects..."
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+                                    value={searchKeyword}
+                                    onChange={(e) => setSearchKeyword(e.target.value)}
+                                />
+                                {/* <button
+                                    type="submit"
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white px-4 py-1 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-700"
+                                >
+                                    Search
+                                </button> */}
+                            </div>
                     </div>
+
+                    <Button variant='default' onClick={() => setSeeProjectGrid(!seeProjectGrid)}>
+                        {seeProjectGrid ? 'See Project List' : 'See Project Grid'}
+                    </Button>
                 </div>
             </div>
             {!seeProjectGrid ?
