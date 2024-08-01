@@ -241,7 +241,7 @@ export default function Projects() {
             {!seeProjectGrid ?
                 <>
 
-                    <div className="container mx-auto p-4">
+                    <div className="mx-2 p-4">
                         {renderTable('Active', 'A - Current Active Projects')}
                         {renderTable('Completed - HB', 'B - Holdback Projects')}
                         {renderTable('Completed - Maint HB', 'C - Maintenance Holdback Projects')}
