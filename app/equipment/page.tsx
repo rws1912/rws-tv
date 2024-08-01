@@ -25,6 +25,7 @@ import {
     ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import print from '@/lib/print';
+import { useFetchModifiedTime } from '@/lib/fetchModifiedTime';
 
 
 
@@ -90,6 +91,9 @@ const InventoryTable = () => {
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
     const [newTypeDialogOpen, setNewTypeDialogOpen] = useState(false);
     const [newTypeName, setNewTypeName] = useState('');
+
+    const fetchModifiedTime = useFetchModifiedTime();
+
 
     const [isMobile, setIsMobile] = useState(false);
 
@@ -166,6 +170,7 @@ const InventoryTable = () => {
                     table: 'equipmentRows'
                 }, () => {
                     console.log("Updated the equipmentRows table");
+                    fetchModifiedTime();
                     if (!isLocalUpdateRef.current) {
                         fetchCombinedEquipments();
                     } else {
@@ -179,6 +184,7 @@ const InventoryTable = () => {
                     table: 'equipmentCells'
                 }, () => {
                     console.log("Updated the equipmentCells table");
+                    fetchModifiedTime();
                     if (!isLocalUpdateRef.current) {
                         fetchCombinedEquipments();
                     } else {
@@ -192,6 +198,7 @@ const InventoryTable = () => {
                     table: 'equipmentColumns'
                 }, () => {
                     console.log("Updated the equipmentColumns table");
+                    fetchModifiedTime();
                     if (!isLocalUpdateRef.current) {
                         fetchCombinedEquipments();
                     } else {
@@ -205,6 +212,7 @@ const InventoryTable = () => {
                     table: 'equipmentType'
                 }, () => {
                     console.log("Updated the equipmentType table");
+                    fetchModifiedTime();
                     if (!isLocalUpdateRef.current) {
                         fetchCombinedEquipments();
                     } else {
@@ -224,6 +232,7 @@ const InventoryTable = () => {
 
         fetchCombinedEquipments();
         subscribeToCombinedEquipments();
+        fetchModifiedTime();
     }, [])
 
     const [editingCell, setEditingCell] = useState<string | null>(null);

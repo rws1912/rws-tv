@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { PinCheck } from '@/lib/checkPin';
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
+import { ModifiedTimeProvider } from "@/context/ModifiedTimeContext";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -21,7 +22,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         {/* {children} */}
-        <PinCheck>{children}</PinCheck>
+        <PinCheck>
+          <ModifiedTimeProvider>
+            {children}
+          </ModifiedTimeProvider>
+        </PinCheck>
         <Toaster />
       </body>
     </html>

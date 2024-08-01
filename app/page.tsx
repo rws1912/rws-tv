@@ -8,6 +8,10 @@ import Construction from "@/components/construction";
 import { supabase } from '../lib/supabaseClient'
 import { Menu, X, Eye } from 'lucide-react';
 import RotatePhone from "@/components/rotatePhoneAnimation";
+import { fetchCategoryData } from "@/lib/fetchCategoryData";
+import { useFetchModifiedTime } from "@/lib/fetchModifiedTime";
+import { useModifiedTime } from "@/context/ModifiedTimeContext";
+import { format } from 'date-fns';
 
 
 // const QuotedProjects = () => <div className="h-full bg-gray-100 p-4">QuotedProjects Component</div>;
@@ -42,6 +46,10 @@ export default function Home() {
   const [sectionView, setSectionView] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [wasLandscape, setWasLandscape] = useState(false);
+
+  const { lastModifiedTime } = useModifiedTime();
+  const fetchModifiedTime = useFetchModifiedTime();
+
 
 
   const isLocalUpdateRef = useRef<boolean>(false);
@@ -123,86 +131,6 @@ export default function Home() {
 
   // For inspection
   const fetchInspection = () => fetchCategoryData('inspection', setInspection);
-
-
-  const fetchCategoryData = async (type: 'construction' | 'inspection', setData: React.Dispatch<React.SetStateAction<any[]>>) => {
-    try {
-      // Fetch categories
-      const { data: categories, error: categoriesError } = await supabase
-        .from('Categories')
-        .select('*')
-        .eq('type', type)
-        .order('date_added', { ascending: true })
-
-      if (categoriesError) throw categoriesError
-
-      const result = await Promise.all(categories.map(async (category) => {
-        // Fetch column definitions
-        const { data: columnDefs, error: columnError } = await supabase
-          .from('ColumnDefinitions')
-          .select('*')
-          .eq('category_id', category.id)
-          .order('column_order')
-
-        if (columnError) throw columnError
-
-        // Fetch category data
-        const { data: categoryData, error: dataError } = await supabase
-          .from('CategoryData')
-          .select(`
-              id,
-              row_number,
-              CategoryDataValues (
-                category_data_id,
-                value,
-                id,
-                ColumnDefinitions (
-                  column_name
-                )
-              )
-            `)
-          .eq('category_id', category.id)
-          .order('row_number')
-
-        if (dataError) throw dataError
-
-        // Structure the rows
-        const rows = categoryData.map(row => {
-          return row.CategoryDataValues.map(cdv => {
-            return {
-              id: cdv.id,
-              categoryDataId: cdv.category_data_id,
-              value: cdv.value
-            }
-          })
-        })
-
-        // Structure the result
-        return {
-          id: category.id.toString(),
-          header: category.header,
-          table: {
-            id: category.id.toString(),
-            rows: rows,
-            columns: columnDefs.map(cd => {
-              return {
-                id: cd.id,
-                name: cd.column_name
-              }
-            }),
-            expandedRows: new Array(rows.length).fill(false)
-          }
-        }
-      }))
-
-      setData(result);
-      return result
-
-    } catch (error) {
-      console.error(`Error fetching ${type} data:`, error)
-      return []
-    }
-  }
 
   useEffect(() => {
     const fetchQuotedProjectsData = async () => {
@@ -301,6 +229,7 @@ export default function Home() {
         schema: 'public',
         table: 'QuotedProjects'
       }, () => {
+        fetchModifiedTime();
         if (!isLocalUpdateRef.current) {
           console.log("updating quoted projects from DB");
           fetchQuotedProjectsData();
@@ -315,13 +244,9 @@ export default function Home() {
         supabase.removeChannel(channel);
       }
     }
-    fetchQuotedProjectsData();
-    subscribeDatabase();
 
-    fetchConstruction();
-    fetchInspection();
     subscribeToConstructionData(() => {
-      console.log("About to update UI from database", isLocalUpdateRef.current);
+      fetchModifiedTime();
       if (!isLocalUpdateRef.current) {
         fetchConstruction();
         fetchInspection();
@@ -330,57 +255,67 @@ export default function Home() {
       }
       isLocalUpdateRef.current = false;
     });
+
+
+    fetchQuotedProjectsData();
+    subscribeDatabase();
+
+    fetchConstruction();
+    fetchInspection();
+    fetchModifiedTime();
   }, [])
 
   const handleEyeClick = (section: string) => {
     setSectionView(section);
     setIsVisible(true);
-    // Alert.show('Please rotate your phone for a better experience.');
   }
-
-  const handleBackClick = () => {
-    setSectionView(null);
-  };
-
-
-
 
   if (isMobile && !sectionView) {
     return (
 
 
-      <div className="h-screen w-screen flex flex-col">
-        <header className="bg-gray-800 text-white p-4 flex justify-between items-center">
-          <h1>Project Management</h1>
-          <button onClick={() => setMenuOpen(true)}>
-            <Menu size={24} />
-          </button>
-        </header>
-        {menuOpen && <MobileMenu />}
-        <div className="flex-1 overflow-y-auto">
-          <section id="projects" className="p-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold mb-4">Projects</h2>
-              <Eye onClick={() => handleEyeClick('projects')} />
-            </div>
-            <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} projectsRowRef={projectsRowRef} />
-          </section>
-          <section id="construction" className="p-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold mb-4">Construction</h2>
-              <Eye onClick={() => handleEyeClick('construction')} />
-            </div>
-            <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile} />
-          </section>
-          <section id="inspection" className="p-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold mb-4">Inspection</h2>
-              <Eye onClick={() => handleEyeClick('inspection')} />
-            </div>
-            <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile} />
-          </section>
+      <>
+        <div className="flex flex-col items-center justify-center">
+          <p className="text-gray-700">
+            {lastModifiedTime
+              ? `The last modified time is ${format(lastModifiedTime, 'yyyy-MM-dd hh:mm:ss a')}`
+              : 'No updates yet'}
+          </p>
         </div>
-      </div>
+        <div className="h-screen w-screen flex flex-col">
+          <header className="bg-gray-800 text-white p-4 flex justify-between items-center">
+            <h1>Project Management</h1>
+            <button onClick={() => setMenuOpen(true)}>
+              <Menu size={24} />
+            </button>
+          </header>
+          {menuOpen && <MobileMenu />}
+          <div className="flex-1 overflow-y-auto">
+            <section id="projects" className="p-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold mb-4">Projects</h2>
+                <Eye onClick={() => handleEyeClick('projects')} />
+              </div>
+              <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} projectsRowRef={projectsRowRef} />
+            </section>
+            <section id="construction" className="p-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold mb-4">Construction</h2>
+                <Eye onClick={() => handleEyeClick('construction')} />
+              </div>
+              <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile} />
+            </section>
+            <section id="inspection" className="p-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold mb-4">Inspection</h2>
+                <Eye onClick={() => handleEyeClick('inspection')} />
+              </div>
+              <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile} />
+            </section>
+          </div>
+        </div>
+      </>
+
 
     );
   }
@@ -390,7 +325,6 @@ export default function Home() {
       <>
         <RotatePhone isVisible={isVisible} setIsVisible={setIsVisible} />
         <div className="h-screen w-screen">
-          <button onClick={handleBackClick}>Back to Mobile View</button>
           <div className="h-full w-full">
             {sectionView === 'projects' && (
               <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} projectsRowRef={projectsRowRef} />
@@ -408,24 +342,34 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen w-screen">
-      <ResizablePanelGroup direction="horizontal" className="h-full">
-        <ResizablePanel defaultSize={60}>
-          <ResizablePanelGroup direction="vertical">
-            <ResizablePanel defaultSize={50} className="!overflow-y-auto">
-              <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} projectsRowRef={projectsRowRef} />
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={50} className="!overflow-y-auto" ref={panelRef}>
-              <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={false} />
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={40} className="!overflow-y-auto">
-          <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={false} />
-        </ResizablePanel>
-      </ResizablePanelGroup>
-    </div>
+    <>
+      <div className="flex flex-col items-center justify-center">
+        <p className="text-gray-700">
+          {lastModifiedTime
+            ? `The last modified time is ${format(lastModifiedTime, 'yyyy-MM-dd hh:mm:ss a')}`
+            : 'No updates yet'}
+        </p>
+      </div>
+      <div className="h-screen w-screen">
+        <ResizablePanelGroup direction="horizontal" className="h-full">
+          <ResizablePanel defaultSize={60}>
+            <ResizablePanelGroup direction="vertical">
+              <ResizablePanel defaultSize={50} className="!overflow-y-auto">
+                <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} projectsRowRef={projectsRowRef} />
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={50} className="!overflow-y-auto" ref={panelRef}>
+                <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={false} />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={40} className="!overflow-y-auto">
+            <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={false} />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+    </>
+
   );
 }
