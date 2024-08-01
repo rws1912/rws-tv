@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { ChevronLeft } from 'lucide-react';
 import Link from "next/link";
+import SideTabs from "@/components/sideTabs";
 
 
 
@@ -48,11 +49,25 @@ interface ProjectInfo {
     value: number
 }
 
+interface TableInfo {
+    status: string;
+    header: string;
+}
+
 export default function Projects() {
     const [projects, setProjects] = useState<ProjectInfo[]>([]);
     const [seeProjectGrid, setSeeProjectGrid] = useState<boolean>(false);
     const [searchKeyword, setSearchKeyword] = useState<string>('');
-    const [searchTrigger, setSearchTrigger] = useState<boolean>(false);
+
+    const tableRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+    const tables: TableInfo[] = [
+        { status: 'Active', header: 'A - Current Active Projects' },
+        { status: 'Completed - HB', header: 'B - Holdback Projects' },
+        { status: 'Completed - Maint HB', header: 'C - Maintenance Holdback Projects' },
+        { status: 'Done', header: 'D - Finished Projects' },
+    ];
+
 
     useEffect(() => {
         const getProjectsFromIntranet = async () => {
@@ -97,13 +112,17 @@ export default function Projects() {
         getProjectsFromIntranet()
     }, []);
 
+    const handleTabClick = (status: string) => {
+        tableRefs.current[status]?.scrollIntoView({ behavior: 'smooth' });
+    };
+
     const renderTable = (status: string, header: string) => {
         const filteredProjects = projects.filter(project =>
             project.status === status &&
             (project.projSN.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-             project.jobNum.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-             project.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-             project.contractor.toLowerCase().includes(searchKeyword.toLowerCase()) 
+                project.jobNum.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+                project.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+                project.contractor.toLowerCase().includes(searchKeyword.toLowerCase())
             )
         );
         if (filteredProjects.length === 0) return null;
@@ -152,13 +171,13 @@ export default function Projects() {
 
     const renderProjectGrid = () => {
         const filteredProjects = projects.filter(project =>
-            (project.projSN.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-             project.jobNum.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-             project.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-             project.contractor.toLowerCase().includes(searchKeyword.toLowerCase()) 
-            )
+        (project.projSN.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+            project.jobNum.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+            project.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+            project.contractor.toLowerCase().includes(searchKeyword.toLowerCase())
+        )
         );
-        if (filteredProjects.length === 0) return null;        
+        if (filteredProjects.length === 0) return null;
         const sortedProjects = [...filteredProjects].sort((a, b) => a.projSN.localeCompare(b.projSN));
 
         return (
@@ -197,12 +216,6 @@ export default function Projects() {
         );
     }
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Force a re-render
-        setSearchTrigger(prev => !prev);
-    }
-
 
     return (
         <>
@@ -216,21 +229,15 @@ export default function Projects() {
                     </Link>
 
                     <div className="flex-grow mx-4">
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Search projects..."
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                                    value={searchKeyword}
-                                    onChange={(e) => setSearchKeyword(e.target.value)}
-                                />
-                                {/* <button
-                                    type="submit"
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white px-4 py-1 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-700"
-                                >
-                                    Search
-                                </button> */}
-                            </div>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Search projects..."
+                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+                                value={searchKeyword}
+                                onChange={(e) => setSearchKeyword(e.target.value)}
+                            />
+                        </div>
                     </div>
 
                     <Button variant='default' onClick={() => setSeeProjectGrid(!seeProjectGrid)}>
@@ -240,12 +247,17 @@ export default function Projects() {
             </div>
             {!seeProjectGrid ?
                 <>
-
+                    <SideTabs tables={tables} onTabClick={handleTabClick} />
                     <div className="mx-2 p-4">
-                        {renderTable('Active', 'A - Current Active Projects')}
-                        {renderTable('Completed - HB', 'B - Holdback Projects')}
-                        {renderTable('Completed - Maint HB', 'C - Maintenance Holdback Projects')}
-                        {renderTable('Done', 'D - Finished Projects')}
+                        {tables.map((table) => (
+                            <div
+                                key={table.status}
+                                ref={(el: HTMLDivElement | null) => {
+                                    tableRefs.current[table.status] = el;
+                                }}>
+                                {renderTable(table.status, table.header)}
+                            </div>
+                        ))}
                     </div>
                 </>
                 :
