@@ -787,7 +787,7 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
                 ))}
               </TableBody>
             </Table>
-            {!isMobile &&
+          
               <div className="flex justify-end space-x-1 p-2 bg-gray-50">
                 <Button size="sm" variant="outline" onClick={() => addRow(section.id)}>
                   <Plus className="h-3 w-3 mr-1" /> Row
@@ -798,7 +798,7 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
                 <Button size="sm" variant="outline" onClick={() => deleteColumn(section.id)} disabled={section.table.rows[0].length <= 1}>
                   <Minus className="h-3 w-3 mr-1" /> Column
                 </Button>
-              </div>}
+              </div>
           </div>
         ))}
 
