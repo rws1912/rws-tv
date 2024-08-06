@@ -191,7 +191,7 @@ export default function Projects() {
                                 </Badge>
                             </div>
                             <CardTitle className="text-2xl font-bold text-primary">{project.name}</CardTitle>
-                            <p className="text-xl font-semibold text-secondary-foreground">${project.value.toLocaleString()}</p>
+                            {/* <p className="text-xl font-semibold text-secondary-foreground">${project.value.toLocaleString()}</p> */}
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-3">
@@ -219,6 +219,9 @@ export default function Projects() {
 
     return (
         <>
+            <div className="flex justify-center text-4xl">
+                {seeProjectGrid ? 'RWS Project Grid' : 'RWS Project Status'}
+            </div>
             <div className="sticky top-0 z-20 bg-white w-full py-4 h-16">
                 <div className="relative w-full flex items-center justify-between px-4">
                     <Link href="/">
@@ -241,7 +244,7 @@ export default function Projects() {
                     </div>
 
                     <Button variant='default' onClick={() => setSeeProjectGrid(!seeProjectGrid)}>
-                        {seeProjectGrid ? 'See Project List' : 'See Project Grid'}
+                        {seeProjectGrid ? 'See Project Status' : 'See Project Grid'}
                     </Button>
                 </div>
             </div>

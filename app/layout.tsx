@@ -9,7 +9,7 @@ import { ModifiedTimeProvider } from "@/context/ModifiedTimeContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "RWS TV Project Management",
+  title: "RWS Project Management Planning",
   description: "This app is made for RWS for Project Management",
 };
 

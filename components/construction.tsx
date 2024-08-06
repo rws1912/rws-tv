@@ -213,13 +213,13 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
           <table>
             <thead>
               <tr>
-                ${section.table.columns.map(col => `<th>${col.name}</th>`).join('')}
+                ${section.table.columns.map(col => `<th>${col.name.toUpperCase()}</th>`).join('')}
               </tr>
             </thead>
             <tbody>
               ${section.table.rows.map(row => `
                 <tr>
-                  ${row.map(cell => `<td>${cell.value}</td>`).join('')}
+                  ${row.map(cell => `<td>${cell.value.toUpperCase()}</td>`).join('')}
                 </tr>
               `).join('')}
             </tbody>
