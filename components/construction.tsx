@@ -150,61 +150,65 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
   };
 
   const printWholeSection = () => {
-    // Create HTML content for all sections
     const htmlContent = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>All Sections</title>
-        <style>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>All Sections</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .section-container {
+          page-break-inside: avoid;
+          margin-bottom: 30px;
+        }
+        h1 {
+          color: #2c3e50;
+          border-bottom: 2px solid #3498db;
+          padding-bottom: 10px;
+          margin-top: 30px;
+          margin-bottom: 10px;
+        }
+        table {
+          border-collapse: collapse;
+          width: 100%;
+          box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+        th, td {
+          border: 1px solid #ddd;
+          padding: 12px;
+          text-align: left;
+        }
+        th {
+          background-color: #f2f2f2;
+          font-weight: bold;
+          color: #2c3e50;
+        }
+        tr:nth-child(even) {
+          background-color: #f9f9f9;
+        }
+        @media print {
           body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            padding: 0;
+            max-width: none;
           }
-          h1 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-            margin-top: 30px;
+          .section-container {
+            break-inside: avoid;
           }
-          table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
-          }
-          th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-          }
-          th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-            color: #2c3e50;
-          }
-          tr:nth-child(even) {
-            background-color: #f9f9f9;
-          }
-          @media print {
-            body {
-              padding: 0;
-              max-width: none;
-            }
-            table {
-              page-break-inside: avoid;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        ${sections.map(section => `
+        }
+      </style>
+    </head>
+    <body>
+      ${sections.map(section => `
+        <div class="section-container">
           <h1>${section.header}</h1>
           <table>
             <thead>
@@ -215,15 +219,17 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
             <tbody>
               ${section.table.rows.map(row => `
                 <tr>
-                  ${row.map(cell => `<td>${cell.value.toUpperCase()}</td>`).join('')}
+                  ${row.map(cell => `<td>${cell.value}</td>`).join('')}
                 </tr>
               `).join('')}
             </tbody>
           </table>
-        `).join('')}
-      </body>
-      </html>
-    `;
+        </div>
+      `).join('')}
+    </body>
+    </html>
+  `;
+
 
     // Open the HTML content in a new tab and print it
     print(htmlContent);

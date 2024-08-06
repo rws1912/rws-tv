@@ -758,43 +758,77 @@ const InventoryTable = () => {
 
     const setEquipmentPrint = () => {
         let htmlCode = `
-            <html>
-            <head>
-                <style>
-                    table {
-                        border-collapse: collapse;
-                        width: 100%;
-                        margin-bottom: 20px;
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                .section-container {
+                    page-break-inside: avoid;
+                    margin-bottom: 30px;
+                }
+                h2 {
+                    color: #2c3e50;
+                    border-bottom: 2px solid #3498db;
+                    padding-bottom: 10px;
+                    margin-top: 30px;
+                    margin-bottom: 10px;
+                }
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    margin-bottom: 20px;
+                    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+                }
+                th, td {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                }
+                th {
+                    background-color: #f2f2f2;
+                    font-weight: bold;
+                    color: #2c3e50;
+                }
+                tr:nth-child(even) {
+                    background-color: #f9f9f9;
+                }
+                @media print {
+                    body {
+                        padding: 0;
+                        max-width: none;
                     }
-                    th, td {
-                        border: 1px solid #ddd;
-                        padding: 8px;
-                        text-align: left;
+                    .section-container {
+                        break-inside: avoid;
                     }
-                    th {
-                        background-color: #f2f2f2;
-                    }
-                    h2 {
-                        margin-top: 20px;
-                    }
-                </style>
-            </head>
-            <body>
-        `;
+                }
+            </style>
+        </head>
+        <body>
+    `;
 
         for (const [header, equipments] of Object.entries(groupedEquipments)) {
-            htmlCode += `<h2>${header}</h2>`;
+            htmlCode += `<div class="section-container"><h2>${header}</h2>`;
 
             if (equipments.length > 0) {
                 // Extract column names from the first equipment's cells
                 const columnNames = equipments[0].cells.map(cell => cell.name);
 
                 htmlCode += `
-                    <table>
+                <table>
+                    <thead>
                         <tr>
                             ${columnNames.map(name => `<th>${name}</th>`).join('')}
                         </tr>
-                `;
+                    </thead>
+                    <tbody>
+            `;
 
                 // Sort cells by date_added for consistent column order
                 const sortedEquipments = equipments.map(equipment => ({
@@ -813,15 +847,18 @@ const InventoryTable = () => {
                     htmlCode += '</tr>';
                 }
 
-                htmlCode += '</table>';
+                htmlCode += `
+                    </tbody>
+                </table>
+            `;
             }
+            htmlCode += `</div>`;
         }
 
         htmlCode += `
-            </body>
-            </html>
-        `;
-
+        </body>
+        </html>
+    `;
         print(htmlCode);
     };
 
