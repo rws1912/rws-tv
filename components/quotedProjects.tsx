@@ -82,15 +82,10 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef, projectsRowRe
     if (error) {
       console.error('Error adding new project:', error);
     } else if (data) {
-      // setProjects([...projects, data[0] as Project]);
     }
   };
 
-  // const updateProject = (id: number, field: keyof Project, value: any) => {
-  //   setProjects(projects.map(project =>
-  //     project.id === id ? { ...project, [field]: value } : project
-  //   ));
-  // };
+
   const updateDatabaseDebounced = useDebounce((id: number, field: keyof Project, value: any) => {
     supabase
       .from('QuotedProjects')

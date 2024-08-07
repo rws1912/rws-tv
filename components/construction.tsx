@@ -73,19 +73,7 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
   };
 
 
-  // const addSection = () => {
-  // const newSection: Section = {
-  //   id: Date.now().toString(),
-  //   header: 'New Section',
-  //   table: {
-  //     id: Date.now().toString(),
-  //     rows: [['']],
-  //     columns: ['Column 1'],
-  //     expandedRows: [false]
-  //   }
-  // };
-  // setSections([...sections, newSection]);
-  // };
+
 
   const addSection = async () => {
     try {
@@ -145,7 +133,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
 
     } catch (error) {
       console.error('Error adding new section:', error);
-      // Handle the error appropriately (e.g., show an error message to the user)
     }
   };
 
@@ -278,7 +265,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
       </html>
     `;
 
-    // Open the HTML content in a new tab and print it
     print(htmlContent);
   }
 
@@ -303,7 +289,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
       console.log(`Section ${sectionId} deleted successfully`);
     } catch (error) {
       console.error('Error deleting section:', error);
-      // Handle the error appropriately (e.g., show an error message to the user)
     }
   };
 
@@ -320,7 +305,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
       console.log(`Header for section ${sectionId} updated successfully`);
     } catch (error) {
       console.error('Error updating header:', error);
-      // Handle the error appropriately (e.g., show an error message to the user)
     }
   }, 500); // 500ms delay
 
@@ -441,7 +425,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
 
     } catch (error) {
       console.error('Error deleting row:', error);
-      // Handle the error appropriately (e.g., show an error message to the user)
     }
   };
 
@@ -520,27 +503,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
     }
   };
 
-  // useEffect(() => {
-  //   console.log("Sections is", sections);
-  // }, [sections])
-
-  // const deleteColumn = (sectionId: string) => {
-  // setSections(sections.map(section => {
-  //   if (section.id === sectionId && section.table.rows[0].length > 1) {
-  //     const newRows = section.table.rows.map(row => row.slice(0, -1));
-  //     const newCols = section.table.columns.slice(0, -1);
-  //     return {
-  //       ...section,
-  //       table: {
-  //         ...section.table,
-  //         rows: newRows,
-  //         columns: newCols
-  //       }
-  //     };
-  //   }
-  //   return section;
-  // }));
-  // };
   const deleteColumn = async (sectionId: number) => {
     try {
       isLocalUpdateRef.current = true;

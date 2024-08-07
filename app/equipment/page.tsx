@@ -76,7 +76,7 @@ const InventoryTable = () => {
 
     useEffect(() => {
         const checkIfMobile = () => {
-            setIsMobile(window.innerWidth < 768); // Adjust this breakpoint as needed
+            setIsMobile(window.innerWidth < 768);
         };
 
         checkIfMobile();
@@ -96,18 +96,6 @@ const InventoryTable = () => {
 
 
     const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-        const checkIfMobile = () => {
-            setIsMobile(window.innerWidth < 768); // Adjust this breakpoint as needed
-        };
-
-        checkIfMobile();
-        window.addEventListener('resize', checkIfMobile);
-
-        return () => window.removeEventListener('resize', checkIfMobile);
-    }, []);
-
 
     useEffect(() => {
         const fetchCombinedEquipments = async () => {
@@ -149,8 +137,7 @@ const InventoryTable = () => {
                     };
                 });
 
-                // Ensure consistent cell order for each row
-                const columnOrder = ['label', 'description', 'model']; // Add other column names in desired order
+                const columnOrder = ['label', 'description', 'model']; 
                 processedData.forEach(equipment => {
                     equipment.cells.sort((a, b) => {
                         return columnOrder.indexOf(a.name) - columnOrder.indexOf(b.name);
@@ -227,8 +214,7 @@ const InventoryTable = () => {
             }
         }
 
-        // fetchEquipments();
-        // subscribeToEquipments();
+
 
         fetchCombinedEquipments();
         subscribeToCombinedEquipments();
@@ -261,7 +247,6 @@ const InventoryTable = () => {
             } catch (error) {
                 console.error('Error updating database:', error);
                 console.log("My itmes are", id, value, table, columnToUpdate);
-                // You might want to handle this error, perhaps by reverting the local state
             }
         },
         500
@@ -289,24 +274,7 @@ const InventoryTable = () => {
         debouncedUpdateDatabase(id, value);
     };
 
-    // const deleteRow = async (id: string) => {
-    //     isLocalUpdateRef.current = true;
 
-    //     setEquipments(equipments.filter(equipment => equipment.id !== id));
-
-    //     try {
-    //         const { data, error } = await supabase
-    //             .from('equipmentRows')
-    //             .delete()
-    //             .eq('id', id)
-
-    //         if (error) {
-    //             throw error;
-    //         }
-    //     } catch (error) {
-    //         console.error('Error')
-    //     }
-    // };
     const deleteRow = async (id: string) => {
         try {
             // Find the equipment to be deleted
@@ -350,47 +318,9 @@ const InventoryTable = () => {
 
         } catch (error) {
             console.error("Error deleting row:", error);
-            // Handle error (e.g., show an error message to the user)
         }
     };
 
-    // const insertRowBelow = async (id: string, type: string) => {
-    //     isLocalUpdateRef.current = true;
-
-    //     const index = items.findIndex(item => item.id === id);
-    //     const newItem = {
-    //         label: '',
-    //         type: type,
-    //         model: '',
-    //         description: '',
-    //         location: '',
-    //     };
-
-    //     try {
-    //         // Insert the new item into Supabase
-    //         const { data, error } = await supabase
-    //             .from('EquipmentList')
-    //             .insert(newItem)
-    //             .select()
-    //             .single();
-
-    //         if (error) {
-    //             throw error;
-    //         }
-
-    //         // If successful, update the local state
-    //         setItems(prevItems => [
-    //             ...prevItems.slice(0, index + 1),
-    //             data as Item, // Use the returned data from Supabase
-    //             ...prevItems.slice(index + 1)
-    //         ]);
-
-    //         console.log('New row inserted successfully');
-    //     } catch (error) {
-    //         console.error('Error inserting new row:', error);
-    //         isLocalUpdateRef.current = false; // Reset the flag
-    //     }
-    // };
     const insertRowBelow = async (type: string) => {
         isLocalUpdateRef.current = true;
 
@@ -447,7 +377,6 @@ const InventoryTable = () => {
     }
 
     const insertColumn = async (type: string) => {
-        // isLocalUpdateRef.current = true;
         const rowEquipments = equipments.filter(equipment => equipment.type === type);
 
         try {
@@ -476,34 +405,10 @@ const InventoryTable = () => {
 
             console.log("New cells created:", newCells);
 
-            // Update the local state equipments
-            // setEquipments(prevEquipments: any =>
-            //     prevEquipments.map(equipment => {
-            //         if (equipment.type === type) {
-            //             const newCell = newCells.find(cell => cell.row_id === equipment.id);
-            //             return {
-            //                 ...equipment,
-            //                 cells: [
-            //                     ...equipment.cells,
-            //                     {
-            //                         id: newCell.id,
-            //                         column_id: newColumn.id,
-            //                         name: newColumn.column_name,
-            //                         row_id: equipment.id,
-            //                         value: ''
-            //                     }
-            //                 ]
-            //             };
-            //         }
-            //         return equipment;
-            //     })
-            // );
-
             console.log("Local state updated");
 
         } catch (error) {
             console.error("Error inserting new column:", error);
-            // Handle error (e.g., show an error message to the user)
         } finally {
             isLocalUpdateRef.current = false;
         }
@@ -614,8 +519,6 @@ const InventoryTable = () => {
             }
 
             console.log('Column deleted successfully:', data);
-            // You might want to update your local state or trigger a re-fetch here
-            // For example: await fetchCombinedEquipments();
 
             return data;
         } catch (error) {
@@ -623,17 +526,6 @@ const InventoryTable = () => {
             throw error;
         }
     };
-
-    // const groupedItems = useMemo(() => {
-    //     const groups: { [key: string]: Item[] } = {};
-    //     items.forEach(item => {
-    //         if (!groups[item.type]) {
-    //             groups[item.type] = [];
-    //         }
-    //         groups[item.type].push(item);
-    //     });
-    //     return groups;
-    // }, [items]);
 
     const groupedEquipments = useMemo(() => {
         const groups: { [key: string]: ProcessedEquipmentRow[] } = {};
@@ -652,15 +544,6 @@ const InventoryTable = () => {
             equipment.cells = sortCells(equipment.cells);
             groups[equipment.type].push(equipment);
         });
-
-        // Sort rows within each group
-        // for (const type in groups) {
-        //     groups[type].sort((a, b) => {
-        //         // Assuming the first cell is always present and represents the creation time of the row
-        //         console.log("a", a);
-        //         return new Date(a.cells[0].date_added).getTime() - new Date(b.cells[0].date_added).getTime();
-        //     });
-        // }
 
         console.log('groups', groups);
         return groups;
@@ -727,16 +610,6 @@ const InventoryTable = () => {
             console.log("Column created", columnData);
             console.log("Cell created", cellData);
 
-            // Update local state
-            // setEquipments(prevItems => [...prevItems, {
-            //     ...rowData,
-            //     cells: [{
-            //         id: cellData.id,
-            //         name: columnData.column_name,
-            //         value: '', // Default empty value for the new cell
-            //         column_id: columnData.id
-            //     }]
-            // }]);
             setExpandedGroups(prev => new Set(prev).add(newTypeName.trim()));
             setNewTypeName('');
             setNewTypeDialogOpen(false);
