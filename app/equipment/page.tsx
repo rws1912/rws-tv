@@ -28,8 +28,6 @@ import print from '@/lib/print';
 import { useFetchModifiedTime } from '@/lib/fetchModifiedTime';
 
 
-
-
 interface Item {
     id: string;
     label: string;
@@ -748,7 +746,7 @@ const InventoryTable = () => {
     }
 
 
-    const renderGroupHeader = (type: string, count: number) => (
+    const renderGroupHeader = (type: string, rows: number, columns: number) => (
         <div
             key={`header-${type}`}
             className="bg-gray-100 w-full py-2 px-4 mb-2 rounded-lg"
@@ -763,20 +761,22 @@ const InventoryTable = () => {
                     ) : (
                         <ChevronRight className="h-4 w-4 mr-2" />
                     )}
-                    <span>{type} ({count})</span>
+                    <span>{type} ({rows})</span>
                 </div>
                 <div>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            insertColumn(type);
-                        }}
-                    >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Column
-                    </Button>
+                    {columns < 7 && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                insertColumn(type);
+                            }}
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Column
+                        </Button>
+                    )}
                     <Button
                         variant="ghost"
                         size="sm"
@@ -834,7 +834,7 @@ const InventoryTable = () => {
             </div>
             {Object.entries(groupedEquipments).map(([type, groupEquipments]) => (
                 <div className="w-full" key={type}>
-                    {renderGroupHeader(type, groupEquipments.length)}
+                    {renderGroupHeader(type, groupEquipments.length, groupEquipments[0].cells.length)}
                     {expandedGroups.has(type) && (
                         <Table className="w-full mb-4">
                             <TableHeader>
