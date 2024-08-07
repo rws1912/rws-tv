@@ -307,7 +307,7 @@ export default function Home() {
             </section>
             <section id="inspection" className="p-4">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold mb-4">Inspection</h2>
+                <h2 className="text-xl font-bold mb-4">Industrial</h2>
                 <Eye onClick={() => handleEyeClick('inspection')} />
               </div>
               <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile} />
@@ -355,16 +355,25 @@ export default function Home() {
           <ResizablePanel defaultSize={60}>
             <ResizablePanelGroup direction="vertical">
               <ResizablePanel defaultSize={50} className="!overflow-y-auto">
+                <div className="p-4 bg-gray-100 border-b border-gray-600">
+                  <h2 className="text-xl font-semibold">Quoted Projects</h2>
+                </div>
                 <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} projectsRowRef={projectsRowRef} />
               </ResizablePanel>
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize={50} className="!overflow-y-auto" ref={panelRef}>
+                <div className="p-4 bg-gray-100 border-b border-gray-600">
+                  <h2 className="text-xl font-semibold">Construction</h2>
+                </div>
                 <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={false} />
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize={40} className="!overflow-y-auto">
+            <div className="p-4 bg-gray-100 border-b border-gray-600">
+              <h2 className="text-xl font-semibold">Industrial</h2>
+            </div>
             <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={false} />
           </ResizablePanel>
         </ResizablePanelGroup>
