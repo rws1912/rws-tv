@@ -43,11 +43,10 @@ interface Project {
 interface Props {
   projects: Project[];
   setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
-  isLocalUpdateRef: React.MutableRefObject<boolean>;
   projectsRowRef: React.RefObject<HTMLTableRowElement>;
 }
 
-const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef, projectsRowRef }: Props) => {
+const QuotedProjects = ({ projects, setProjects, projectsRowRef }: Props) => {
   const [expandedRows, setExpandedRows] = useState<{ [key: string]: boolean }>({});
 
   const [sortedProjects, setSortedProjects] = useState<Project[]>([]);
@@ -101,7 +100,6 @@ const QuotedProjects = ({ projects, setProjects, isLocalUpdateRef, projectsRowRe
   }, 500);
 
   const updateProject = useCallback((id: number, field: keyof Project, value: any) => {
-    isLocalUpdateRef.current = true;
     // Immediately update the local state for responsiveness
     setProjects(prevProjects => prevProjects.map(project =>
       project.id === id ? { ...project, [field]: value } : project

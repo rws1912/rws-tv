@@ -52,7 +52,6 @@ export default function Home() {
 
 
 
-  const isLocalUpdateRef = useRef<boolean>(false);
 
   const panelRef = useRef<ImperativePanelHandle>(null);
   const projectsRowRef = useRef<HTMLTableRowElement>(null);
@@ -230,14 +229,9 @@ export default function Home() {
         table: 'QuotedProjects'
       }, () => {
         fetchModifiedTime();
-        if (!isLocalUpdateRef.current) {
-          console.log("updating quoted projects from DB");
-          fetchQuotedProjectsData();
-        } else {
-          console.log("Local change");
-        }
+        console.log("updating quoted projects from DB");
+        fetchQuotedProjectsData();
 
-        isLocalUpdateRef.current = false;
       }).subscribe()
 
       return () => {
@@ -247,13 +241,8 @@ export default function Home() {
 
     subscribeToConstructionData(() => {
       fetchModifiedTime();
-      if (!isLocalUpdateRef.current) {
-        fetchConstruction();
-        fetchInspection();
-      } else {
-        console.log("Cancelled updating UI since local")
-      }
-      isLocalUpdateRef.current = false;
+      fetchConstruction();
+      fetchInspection();
     });
 
 
@@ -296,21 +285,21 @@ export default function Home() {
                 <h2 className="text-xl font-bold mb-4">Projects</h2>
                 <Eye onClick={() => handleEyeClick('projects')} />
               </div>
-              <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} projectsRowRef={projectsRowRef} />
+              <QuotedProjects projects={projects} setProjects={setProjects} projectsRowRef={projectsRowRef} />
             </section>
             <section id="construction" className="p-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold mb-4">Construction</h2>
                 <Eye onClick={() => handleEyeClick('construction')} />
               </div>
-              <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile} />
+              <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isMobile={isMobile} />
             </section>
             <section id="inspection" className="p-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold mb-4">Industrial</h2>
                 <Eye onClick={() => handleEyeClick('inspection')} />
               </div>
-              <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={isMobile} />
+              <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection}  isMobile={isMobile} />
             </section>
           </div>
         </div>
@@ -327,13 +316,13 @@ export default function Home() {
         <div className="h-screen w-screen">
           <div className="h-full w-full">
             {sectionView === 'projects' && (
-              <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} projectsRowRef={projectsRowRef} />
+              <QuotedProjects projects={projects} setProjects={setProjects} projectsRowRef={projectsRowRef} />
             )}
             {sectionView === 'construction' && (
-              <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={false} />
+              <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isMobile={false} />
             )}
             {sectionView === 'inspection' && (
-              <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={false} />
+              <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isMobile={false} />
             )}
           </div>
         </div>
@@ -358,14 +347,14 @@ export default function Home() {
                 <div className="p-4 bg-gray-100 border-b border-gray-600">
                   <h2 className="text-xl font-semibold">Quoted Projects</h2>
                 </div>
-                <QuotedProjects projects={projects} setProjects={setProjects} isLocalUpdateRef={isLocalUpdateRef} projectsRowRef={projectsRowRef} />
+                <QuotedProjects projects={projects} setProjects={setProjects} projectsRowRef={projectsRowRef} />
               </ResizablePanel>
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize={50} className="!overflow-y-auto" ref={panelRef}>
                 <div className="p-4 bg-gray-100 border-b border-gray-600">
                   <h2 className="text-xl font-semibold">Construction</h2>
                 </div>
-                <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isLocalUpdateRef={isLocalUpdateRef} isMobile={false} />
+                <Construction type="construction" styling="bg-green-200" sections={construction} setSections={setConstruction} isMobile={false} />
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>
@@ -374,7 +363,7 @@ export default function Home() {
             <div className="p-4 bg-gray-100 border-b border-gray-600">
               <h2 className="text-xl font-semibold">Industrial</h2>
             </div>
-            <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isLocalUpdateRef={isLocalUpdateRef} isMobile={false} />
+            <Construction styling={'bg-blue-200'} type={"industrial"} sections={inspection} setSections={setInspection} isMobile={false} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>

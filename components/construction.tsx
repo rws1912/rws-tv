@@ -27,7 +27,6 @@ interface Props {
   styling: string;
   sections: Section[];
   setSections: React.Dispatch<React.SetStateAction<Section[]>>;
-  isLocalUpdateRef: React.MutableRefObject<boolean>;
   isMobile: boolean
 
 }
@@ -54,7 +53,7 @@ const useDebounce = (callback: Function, delay: number) => {
   }, [callback, delay]);
 };
 
-const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, isMobile }: Props) => {
+const Construction = ({ type, styling, sections, setSections, isMobile }: Props) => {
   const toggleRowExpansion = (sectionId: number, rowIndex: number) => {
     setSections(sections.map(section => {
       if (section.id === sectionId) {
@@ -272,8 +271,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
 
   const deleteSection = async (sectionId: number) => {
     try {
-      isLocalUpdateRef.current = true;
-
       setSections(prevSections => prevSections.filter(section => section.id !== sectionId));
 
       // Delete the section from the Categories table
@@ -309,8 +306,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
   }, 500); // 500ms delay
 
   const updateHeader = useCallback((sectionId: number, newHeader: string) => {
-    isLocalUpdateRef.current = true;
-
     // Immediately update local state for responsive UI
     setSections(prevSections => prevSections.map(section =>
       section.id === sectionId ? { ...section, header: newHeader } : section
@@ -337,8 +332,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
   // };
   const addRow = async (sectionId: number) => {
     try {
-      isLocalUpdateRef.current = true;
-
       // Find the section in the current state
       const section = sections.find(s => s.id === sectionId);
       if (!section) {
@@ -396,8 +389,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
 
   const deleteRow = async (rowId: number, sectionId: number, rowIndex: number) => {
     try {
-      isLocalUpdateRef.current = true;
-
       const { error } = await supabase
         .from('CategoryData')
         .delete()
@@ -446,8 +437,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
   // };
   const addColumn = async (sectionId: number) => {
     try {
-      isLocalUpdateRef.current = true;
-
       const section = sections.find(s => s.id === sectionId);
       if (!section) {
         console.error('Section not found');
@@ -505,8 +494,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
 
   const deleteColumn = async (sectionId: number) => {
     try {
-      isLocalUpdateRef.current = true;
-
       const section = sections.find(s => s.id === sectionId);
       if (!section || section.table.columns.length <= 1) {
         console.error('Section not found or only one column remains');
@@ -564,8 +551,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
   }, 500)
 
   const updateColumn = useCallback((colId: string, sectionId: number, rowIndex: number, value: string) => {
-    isLocalUpdateRef.current = true;
-
     setSections(prevSections => prevSections.map(section => {
       if (section.id === sectionId) {
         const newCol = section.table.columns.map((col, index) =>
@@ -606,8 +591,6 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
   }, 500)
 
   const updateCell = useCallback((sectionId: number, colIndex: number, rowIndex: number, cellId: number, value: string) => {
-    isLocalUpdateRef.current = true;
-
     setSections(sections.map(section => {
       if (section.id === sectionId) {
         const newRows = section.table.rows.map((row, rIndex) =>
@@ -749,18 +732,18 @@ const Construction = ({ type, styling, sections, setSections, isLocalUpdateRef, 
                 ))}
               </TableBody>
             </Table>
-          
-              <div className="flex justify-end space-x-1 p-2 bg-gray-50">
-                <Button size="sm" variant="outline" onClick={() => addRow(section.id)}>
-                  <Plus className="h-3 w-3 mr-1" /> Row
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => addColumn(section.id)} disabled={section.table.rows[0].length >= 3}>
-                  <Plus className="h-3 w-3 mr-1" /> Column
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => deleteColumn(section.id)} disabled={section.table.rows[0].length <= 1}>
-                  <Minus className="h-3 w-3 mr-1" /> Column
-                </Button>
-              </div>
+
+            <div className="flex justify-end space-x-1 p-2 bg-gray-50">
+              <Button size="sm" variant="outline" onClick={() => addRow(section.id)}>
+                <Plus className="h-3 w-3 mr-1" /> Row
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => addColumn(section.id)} disabled={section.table.rows[0].length >= 3}>
+                <Plus className="h-3 w-3 mr-1" /> Column
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => deleteColumn(section.id)} disabled={section.table.rows[0].length <= 1}>
+                <Minus className="h-3 w-3 mr-1" /> Column
+              </Button>
+            </div>
           </div>
         ))}
 

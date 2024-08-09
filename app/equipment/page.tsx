@@ -83,9 +83,6 @@ const InventoryTable = () => {
         return () => window.removeEventListener('resize', checkIfMobile);
     }, []);
 
-
-
-    const isLocalUpdateRef = useRef<boolean>(false);
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
     const [newTypeDialogOpen, setNewTypeDialogOpen] = useState(false);
     const [newTypeName, setNewTypeName] = useState('');
@@ -156,12 +153,8 @@ const InventoryTable = () => {
                 }, () => {
                     console.log("Updated the equipmentRows table");
                     fetchModifiedTime();
-                    if (!isLocalUpdateRef.current) {
-                        fetchCombinedEquipments();
-                    } else {
-                        console.log("Local change for equipmentRows");
-                    }
-                    isLocalUpdateRef.current = false;
+                    fetchCombinedEquipments();
+
                 })
                 .on('postgres_changes', {
                     event: '*',
@@ -170,12 +163,9 @@ const InventoryTable = () => {
                 }, () => {
                     console.log("Updated the equipmentCells table");
                     fetchModifiedTime();
-                    if (!isLocalUpdateRef.current) {
-                        fetchCombinedEquipments();
-                    } else {
-                        console.log("Local change for equipmentCells");
-                    }
-                    isLocalUpdateRef.current = false;
+
+                    fetchCombinedEquipments();
+
                 })
                 .on('postgres_changes', {
                     event: '*',
@@ -184,12 +174,9 @@ const InventoryTable = () => {
                 }, () => {
                     console.log("Updated the equipmentColumns table");
                     fetchModifiedTime();
-                    if (!isLocalUpdateRef.current) {
-                        fetchCombinedEquipments();
-                    } else {
-                        console.log("Local change for equipmentColumns");
-                    }
-                    isLocalUpdateRef.current = false;
+
+                    fetchCombinedEquipments();
+
                 })
                 .on('postgres_changes', {
                     event: '*',
@@ -198,12 +185,8 @@ const InventoryTable = () => {
                 }, () => {
                     console.log("Updated the equipmentType table");
                     fetchModifiedTime();
-                    if (!isLocalUpdateRef.current) {
-                        fetchCombinedEquipments();
-                    } else {
-                        console.log("Local change for equipmentType");
-                    }
-                    isLocalUpdateRef.current = false;
+
+                    fetchCombinedEquipments();
                 })
                 .subscribe();
 
@@ -251,7 +234,6 @@ const InventoryTable = () => {
     );
 
     const updateItem = (rowId: string, id: string, value: string) => {
-        isLocalUpdateRef.current = true;
         console.log("rowId", rowId);
         console.log("equipments", equipments);
         console.log("id", id);
@@ -320,7 +302,6 @@ const InventoryTable = () => {
     };
 
     const insertRowBelow = async (type: string) => {
-        isLocalUpdateRef.current = true;
 
         try {
             // Create a new row for it of type <type>
@@ -407,9 +388,8 @@ const InventoryTable = () => {
 
         } catch (error) {
             console.error("Error inserting new column:", error);
-        } finally {
-            isLocalUpdateRef.current = false;
-        }
+            // Handle error (e.g., show an error message to the user)
+        } 
     };
 
     const handleCellClick = (id: string) => {
@@ -421,7 +401,6 @@ const InventoryTable = () => {
     };
 
     const updateColumn = (rowId: string, columnId: string, value: string) => {
-        isLocalUpdateRef.current = true;
 
 
         setEquipments(prevEquipments => {
@@ -560,7 +539,6 @@ const InventoryTable = () => {
     };
 
     const handleAddNewType = async () => {
-        isLocalUpdateRef.current = true;
         if (newTypeName.trim() === '') return;
 
         try {
